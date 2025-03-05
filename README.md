@@ -1,7 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/devchristian1337/loon-plugin/refs/heads/main/App-Icons/youtube.png" width="60" />
-  <img src="https://raw.githubusercontent.com/devchristian1337/loon-plugin/refs/heads/main/App-Icons/spotify.png" width="60" />
-  <img src="https://raw.githubusercontent.com/devchristian1337/loon-plugin/refs/heads/main/App-Icons/soundcloud.png" width="60" />
+  <img src="https://iili.io/3FBKKaj.png" width="700" />
 </p>
 
 <h1 align="center">Loon Plugins</h1>
