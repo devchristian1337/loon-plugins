@@ -1,0 +1,36 @@
+#!name = YouTube
+#!desc = Filter YouTube ads, add Picture-in-Picture, subtitle translation, lyrics translation, and support background playback. Requires QUIC fallback protection. Not supported on tvOS.
+#!openUrl = https://raw.githubusercontent.com/devchristian1337/loon-plugin/refs/heads/main/Plugins/YouTube.plugin
+#!author = devchristian1337
+#!tag = AdBlock
+#!system = 
+#!system_version = 
+#!loon_version = 3.2.6(821)
+#!homepage = https://github.com/devchristian1337/Loon/blob/main/README.md
+#!icon = https://raw.githubusercontent.com/devchristian1337/Loon/main/App-Icons/youtube-icon.png
+#!date = 2025-03-04 12:40
+
+[Argument]
+blockUpload = switch, true, false, tag = Hide Upload Button, desc = Whether to hide the upload button
+blockImmersive = switch, true, false, tag = Hide Selection Button, desc = Whether to hide the selection button
+captionLang = select, "it", "en", "off", tag = Subtitle Translation Language, desc = Choose subtitle translation language
+lyricLang = select, "it", "en", "off", tag = Lyrics Translation Language, desc = Choose lyrics translation language
+debug = switch, false, true, tag = Enable Debug Mode, desc = Whether to enable debug mode
+
+[Rule]
+AND, ((DOMAIN-SUFFIX, googlevideo.com), (PROTOCOL, UDP)), REJECT
+AND, ((DOMAIN-SUFFIX, youtubei.googleapis.com), (PROTOCOL, UDP)), REJECT
+
+[Rewrite]
+^https?:\/\/[\w-]+\.googlevideo\.com\/initplayback.+&oad mock-response-body data-type=text status-code=502
+(^https?:\/\/[\w-]+\.googlevideo\.com\/(?!dclk_video_ads).+?)&ctier=L(&.+?),ctier,(.+) 302 $1$2$3
+^https?:\/\/[\w-]+\.googlevideo\.com\/(?!(dclk_video_ads|videoplayback\?)).+&oad reject-200
+^https?:\/\/(www|s)\.youtube\.com\/api\/stats\/ads reject-200
+^https?:\/\/(www|s)\.youtube\.com\/(pagead|ptracking) reject-200
+^https?:\/\/s\.youtube\.com\/api\/stats\/qoe\?adcontext reject-200
+
+[Script]
+http-response ^https?:\/\/youtubei\.googleapis\.com\/youtubei\/v1\/(?:browse|next|player|search|reel\/reel_watch_sequence|guide|account\/get_setting|get_watch) script-path = https://raw.githubusercontent.com/Maasea/sgmodule/master/Script/Youtube/dist/youtube.response.preview.js, requires-body = true, binary-body-mode = true, tag = YouTube Response, argument=[{blockUpload},{blockImmersive},{captionLang},{lyricLang},{debug}]
+
+[MitM]
+hostname = -redirector*.googlevideo.com, *.googlevideo.com, www.youtube.com, s.youtube.com, youtubei.googleapis.com
