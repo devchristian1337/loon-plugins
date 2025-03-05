@@ -10,7 +10,7 @@ A collection of custom plugins for [Loon](https://apps.apple.com/app/loon/id1373
 
 ### YouTube Plugin
 
-![YouTube Icon](https://raw.githubusercontent.com/devchristian1337/Loon/main/App-Icons/youtube-icon.png)
+![YouTube Icon](https://raw.githubusercontent.com/devchristian1337/loon-plugin/refs/heads/main/App-Icons/youtube-icon.png)
 
 This plugin enhances your YouTube experience by:
 
