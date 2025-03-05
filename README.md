@@ -14,19 +14,6 @@ A collection of custom plugins for [Loon](https://apps.apple.com/app/loon/id1373
 - QUIC fallback protection
 - Not supported on tvOS
 
-#### Installation
-
-1. Open Loon
-2. Go to the "Plugin" tab
-3. Tap the "+" button
-4. Paste the following URL:
-   ```
-   https://raw.githubusercontent.com/devchristian1337/loon-plugin/refs/heads/main/YouTube.plugin
-   ```
-5. Tap "Download"
-
-Alternatively, you can directly import by clicking [here](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugin/refs/heads/main/Plugins/YouTube.plugin).
-
 ## How It Works
 
 The plugin uses a combination of:
