@@ -4,9 +4,10 @@ A collection of custom plugins for [Loon](https://apps.apple.com/app/loon/id1373
 
 ## Available Plugins
 
-| Plugin  | Description                      | Features                                                   | Link                                                                                                                                                            |
-| ------- | -------------------------------- | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| YouTube | Enhances your YouTube experience | Ad removal, PiP, subtitle translation, background playback | [Download](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugin/refs/heads/main/Plugins/YouTube.plugin) |
+| Plugin  | Description                        | Features                                                                          | Link                                                                                                                                                            |
+| ------- | ---------------------------------- | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| YouTube | Enhances your YouTube experience   | Ad removal, PiP, subtitle translation, background playback                        | [Download](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugin/refs/heads/main/Plugins/YouTube.plugin) |
+| Spotify | Partially unlocks premium features | Remove playback ads, Normal display of artist/album lists, Remove random playback | [Download](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugin/refs/heads/main/Plugins/Spotify.plugin) |
 
 #### Requirements
 
