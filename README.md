@@ -8,18 +8,6 @@ A collection of custom plugins for [Loon](https://apps.apple.com/app/loon/id1373
 | ------- | -------------------------------- | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | YouTube | Enhances your YouTube experience | Ad removal, PiP, subtitle translation, background playback | [Download](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugin/refs/heads/main/Plugins/YouTube.plugin) |
 
-### YouTube Plugin
-
-![YouTube Icon](https://raw.githubusercontent.com/devchristian1337/loon-plugin/refs/heads/main/App-Icons/youtube-icon.png)
-
-This plugin enhances your YouTube experience by:
-
-- Removing ads
-- Enabling Picture-in-Picture
-- Supporting subtitle translation
-- Supporting lyrics translation
-- Enabling background playback
-
 #### Requirements
 
 - Loon version 3.2.6 or newer
