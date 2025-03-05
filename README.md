@@ -27,11 +27,11 @@
 
 ## 🔌 Available Plugins
 
-| Plugin                                                                                                                                                               | Description                        | Key Features                                               |
-| -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- | ---------------------------------------------------------- |
-| [YouTube](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugin/refs/heads/main/Plugins/YouTube.plugin)       | Enhances your YouTube experience   | Ad removal, PiP, subtitle translation, background playback |
-| [Spotify](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugin/refs/heads/main/Plugins/Spotify.plugin)       | Partially unlocks premium features | Remove ads, normal artist/album lists, no random playback  |
-| [SoundCloud](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugin/refs/heads/main/Plugins/SoundCloud.plugin) | Unlock SoundCloud Go+ features     | Access to premium content and features                     |
+| Plugin                                                                                                                                                                | Description                        | Key Features                                               |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- | ---------------------------------------------------------- |
+| [YouTube](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/YouTube.plugin)       | Enhances your YouTube experience   | Ad removal, PiP, subtitle translation, background playback |
+| [Spotify](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/Spotify.plugin)       | Partially unlocks premium features | Remove ads, normal artist/album lists, no random playback  |
+| [SoundCloud](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/SoundCloud.plugin) | Unlock SoundCloud Go+ features     | Access to premium content and features                     |
 
 ## ✨ Features
 
@@ -70,9 +70,9 @@
 1. Make sure you have [Loon](https://apps.apple.com/app/loon/id1373567447) installed (v3.2.6+)
 2. Enable QUIC fallback protection in Loon settings
 3. Click on the download link for the desired plugin:
-   - [YouTube Plugin](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugin/refs/heads/main/Plugins/YouTube.plugin)
-   - [Spotify Plugin](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugin/refs/heads/main/Plugins/Spotify.plugin)
-   - [SoundCloud Plugin](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugin/refs/heads/main/Plugins/SoundCloud.plugin)
+   - [YouTube Plugin](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/YouTube.plugin)
+   - [Spotify Plugin](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/Spotify.plugin)
+   - [SoundCloud Plugin](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/SoundCloud.plugin)
 4. Loon will prompt you to add the plugin - confirm by tapping "Add Plugin"
 5. For YouTube and Spotify, you can configure plugin settings in the Loon app
 6. Restart the respective app (YouTube, Spotify, or SoundCloud)

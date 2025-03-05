@@ -1,13 +1,13 @@
 #!name = YouTube
 #!desc = Filter YouTube ads, add Picture-in-Picture, subtitle translation, lyrics translation, and support background playback. Requires QUIC fallback protection. Not supported on tvOS.
-#!openUrl = https://raw.githubusercontent.com/devchristian1337/loon-plugin/refs/heads/main/Plugins/YouTube.plugin
+#!openUrl = https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/YouTube.plugin
 #!author = devchristian1337
 #!tag = AdBlock
 #!system = 
 #!system_version = 
 #!loon_version = 3.2.6(821)
-#!homepage = https://github.com/devchristian1337/loon-plugin/blob/main/README.md
-#!icon = https://raw.githubusercontent.com/devchristian1337/loon-plugin/refs/heads/main/App-Icons/youtube.png
+#!homepage = https://github.com/devchristian1337/loon-plugins/blob/main/README.md
+#!icon = https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/App-Icons/youtube.png
 #!date = 2025-03-05 12:40
 
 [Argument]

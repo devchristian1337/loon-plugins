@@ -1,11 +1,11 @@
 #!name=Spotify
 #!desc=Partially unlocks premium features, audio quality cannot be set to very high (recommended to login before enabling the script, restart app and wait for script to take effect)
-#!openUrl=https://raw.githubusercontent.com/devchristian1337/loon-plugin/refs/heads/main/Plugins/Spotify.plugin
+#!openUrl=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/Spotify.plugin
 #!author = devchristian1337
 #!tag = Spotify
 #!loon_version = 3.2.6(821)
-#!homepage = https://github.com/devchristian1337/loon-plugin/blob/main/README.md
-#!icon = https://raw.githubusercontent.com/devchristian1337/loon-plugin/refs/heads/main/App-Icons/spotify.png
+#!homepage = https://github.com/devchristian1337/loon-plugins/blob/main/README.md
+#!icon = https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/App-Icons/spotify.png
 #!date = 2025-03-05 12:40
 
 [Rewrite]
