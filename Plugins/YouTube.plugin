@@ -6,8 +6,8 @@
 #!system = 
 #!system_version = 
 #!loon_version = 3.2.6(821)
-#!homepage = https://github.com/devchristian1337/Loon/blob/main/README.md
-#!icon = https://raw.githubusercontent.com/devchristian1337/Loon/main/App-Icons/youtube-icon.png
+#!homepage = https://github.com/devchristian1337/loon-plugin/blob/main/README.md
+#!icon = https://raw.githubusercontent.com/devchristian1337/loon-plugin/refs/heads/main/App-Icons/youtube-icon.png
 #!date = 2025-03-04 12:40
 
 [Argument]
