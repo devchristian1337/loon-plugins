@@ -27,11 +27,14 @@
 
 ## 🔌 Available Plugins
 
-| Plugin                                                                                                                                                                | Description                        | Key Features                                               |
-| --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------- | ---------------------------------------------------------- |
-| [YouTube](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/YouTube.plugin)       | Enhances your YouTube experience   | Ad removal, PiP, subtitle translation, background playback |
-| [Spotify](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/Spotify.plugin)       | Partially unlocks premium features | Remove ads, normal artist/album lists, no random playback  |
-| [SoundCloud](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/SoundCloud.plugin) | Unlock SoundCloud Go+ features     | Access to premium content and features                     |
+| Plugin                                                                                                                                                                | Description                         | Key Features                                                          |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- | --------------------------------------------------------------------- |
+| [YouTube](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/YouTube.plugin)       | Enhances your YouTube experience    | Ad removal, PiP, subtitle translation, background playback            |
+| [Spotify](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/Spotify.plugin)       | Partially unlocks premium features  | Remove ads, normal artist/album lists, no random playback             |
+| [SoundCloud](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/SoundCloud.plugin) | Unlock SoundCloud Go+ features      | Access to premium content and features                                |
+| [ILovePDF](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/ILovePDF.plugin)     | Unlock premium features in iLovePDF | Access to premium PDF tools and features                              |
+| [Picsart](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/Picsart.plugin)       | Unlock Picsart membership           | Access to premium editing tools and features                          |
+| [Photomath](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/Photomath.plugin)   | Unlock Photomath membership         | Access to premium math solving features and step-by-step explanations |
 
 ## ✨ Features
 
@@ -58,6 +61,27 @@
 - 🎵 Access to premium-only tracks and content
 - 📱 Enhanced mobile experience
 
+### ILovePDF Plugin
+
+- 🔓 Unlock premium features in iLovePDF
+- 📑 Access to all premium PDF tools
+- 🛠️ Unrestricted access to advanced editing options
+- 📱 Remove limitations on mobile usage
+
+### Picsart Plugin
+
+- 🔓 Unlock Picsart Gold/Premium membership
+- 🖼️ Access to premium templates and editing tools
+- 🎨 Remove watermarks from exported images
+- ✨ Use premium effects and filters
+
+### Photomath Plugin
+
+- 🔓 Unlock Photomath Plus membership
+- 📚 Access to step-by-step explanations for all math problems
+- 📝 View detailed solutions with multiple solving methods
+- 📊 Access to advanced math concepts and learning materials
+
 ## 📝 Requirements
 
 - iOS device with [Loon](https://apps.apple.com/app/loon/id1373567447) installed (version 3.2.6 or newer)
@@ -73,6 +97,9 @@
    - [YouTube Plugin](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/YouTube.plugin)
    - [Spotify Plugin](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/Spotify.plugin)
    - [SoundCloud Plugin](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/SoundCloud.plugin)
+   - [ILovePDF Plugin](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/ILovePDF.plugin)
+   - [Picsart Plugin](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/Picsart.plugin)
+   - [Photomath Plugin](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/Photomath.plugin)
 4. Loon will prompt you to add the plugin - confirm by tapping "Add Plugin"
 5. For YouTube and Spotify, you can configure plugin settings in the Loon app
 6. Restart the respective app (YouTube, Spotify, or SoundCloud)
@@ -108,6 +135,24 @@ Each plugin is specifically designed for its respective application while requir
 
 - Restart the app after installing the plugin
 - Some region-restricted content may still be unavailable
+
+**ILovePDF Plugin Issues:**
+
+- Restart the app after installing the plugin
+- Sign out and sign back in if premium features aren't immediately available
+- May require clearing app cache in some cases
+
+**Picsart Plugin Issues:**
+
+- For best results, restart the app after installing the plugin
+- Some features may require an active internet connection
+- Certain regional content may still be restricted
+
+**Photomath Plugin Issues:**
+
+- Restart the app after plugin installation
+- If solutions don't appear, try clearing the app cache
+- Some advanced problems may still have limitations
 
 ## 🔄 Updates
 
