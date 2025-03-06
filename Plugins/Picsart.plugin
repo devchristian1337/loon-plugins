@@ -1,0 +1,15 @@
+﻿#!name=Picsart
+#!desc=Picsart unlock membership
+#!openUrl=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/Picsart.plugin
+#!author = devchristian1337
+#!tag = Picsart
+#!loon_version = 3.2.6(821)
+#!homepage = https://github.com/devchristian1337/loon-plugins/blob/main/README.md
+#!icon = https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/App-Icons/picsart.png
+#!date = 2025-03-05 12:40
+
+[Script]
+http-response https:\/\/api\.(picsart|meiease)\.c(n|om)\/users\/show\/me\.json requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/NobyDa/Script/master/Surge/JS/PicsArt.js
+
+[MITM]
+hostname = api.picsart.c*, api.meiease.c*

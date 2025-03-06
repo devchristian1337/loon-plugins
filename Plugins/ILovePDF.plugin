@@ -1,0 +1,14 @@
+﻿#!name=i Love PDF
+#!desc=i Love PDF unlock
+#!openUrl=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/ILovePDF.plugin
+#!author = devchristian1337
+#!tag = PDF
+#!loon_version = 3.2.6(821)
+#!homepage = https://github.com/devchristian1337/loon-plugins/blob/main/README.md
+#!icon = https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/App-Icons/ilovepdf.png
+
+[MITM]
+hostname = service.ilovepdf.com
+
+[Script]
+http-response https://service.ilovepdf.com/v1/user requires-body=1,script-path=https://raw.githubusercontent.com/Marol62926/MarScrpt/main/lovePdf.js
