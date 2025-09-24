@@ -9,7 +9,7 @@
 #!date = 2025-09-24 15:30
 
 [Argument]
-tab = switch, false, true, tag = Remove bottom bar create button, desc = Remove the '+' create button from bottom navigation bar for cleaner interface
+tab = switch, true, false, tag = Remove bottom bar create button, desc = Remove the '+' create button from bottom navigation bar for cleaner interface
 useractivity = switch, true, false, tag = Enable Apple device handoff, desc = Enable seamless playback handoff between Apple devices using Continuity
 lyrics = switch, true, false, tag = Enable enhanced lyrics, desc = Unlock premium lyrics features and real-time sync
 hifi = switch, true, false, tag = Enable HiFi quality, desc = Unlock high-fidelity audio streaming (320kbps+)
@@ -34,8 +34,11 @@ offline = switch, true, false, tag = Enhanced offline mode, desc = Improve offli
 # Block analytics and tracking
 ^https:\/\/(?:\w+-)?spclient\.(?:wg\.)?spotify\.com(?::443)?\/(?:analytics|tracking|telemetry)\/ reject-dict
 
-# Block upgrade prompts
-^https:\/\/(?:\w+-)?spclient\.(?:wg\.)?spotify\.com(?::443)?\/(?:upgrade|premium-upsell)\/ reject-dict
+# Block upgrade prompts and create button
+^https:\/\/(?:\w+-)?spclient\.(?:wg\.)?spotify\.com(?::443)?\/(?:upgrade|premium-upsell|create-button|tab-configuration)\/ reject-dict
+
+# Block navigation create button specifically  
+^https:\/\/(?:\w+-)?spclient\.(?:wg\.)?spotify\.com(?::443)?\/navigation\/.*create.* reject-dict
 
 # Optimize artist and album view for better experience
 ^https:\/\/(?:\w+-)?spclient\.(?:wg\.)?spotify\.com(?::443)?\/artistview\/v1\/artist\/(.+)&platform=iphone header-replace https://spclient.wg.spotify.com/artistview/v1/artist/$1&platform=ipad
