@@ -1,26 +1,65 @@
-#!name = Spotify
-#!desc = Filter Spotify ads. Custom plugin configuration changes require re-login to take effect.
+#!name = Spotify Premium Enhanced
+#!desc = Advanced Spotify modification plugin with complete ad blocking and premium features activation. Designed for iOS 17+ and latest Spotify versions. Native create button removal available in Spotify Settings.
 #!openUrl = https://apps.apple.com/app/id324684580
 #!author = devchristian1337[https://github.com/devchristian1337]
-#!tag = Spotify
+#!tag = Spotify, AdBlock, Premium, Streaming, Enhanced
 #!loon_version = 3.3.4(898)
 #!homepage = https://github.com/devchristian1337/loon-plugins/blob/main/README.md
 #!icon = https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/App-Icons/spotify.png
-#!date = 2025-09-24 12:00
+#!date = 2025-09-24 18:00
 
 [Argument]
-tab = switch, false, true, tag = Remove bottom bar create button, desc = This switch controls whether to remove the bottom bar create button
-useractivity = switch, true, false, tag = Enable Apple device handoff, desc = This switch controls whether to use Apple device handoff
+useractivity = switch, true, false, tag = Enable Apple device handoff, desc = Enable seamless playbook handoff between Apple devices using Continuity
+lyrics = switch, true, false, tag = Enable enhanced lyrics, desc = Unlock premium lyrics features and real-time sync display
+hifi = switch, true, false, tag = Enable HiFi quality, desc = Unlock high-fidelity audio streaming (Very High 320kbps)
+offline = switch, true, false, tag = Enhanced offline mode, desc = Improve offline playback capabilities and cache management
+ui_cleanup = switch, true, false, tag = Clean UI modifications, desc = Remove promotional banners and upgrade prompts for cleaner interface
 
 [Rewrite]
-# Playback ads
-^https:\/\/(?:\w+-spclient|spclient\.wg)\.spotify\.com(?::443)?\/pendragon\/ reject-dict
 
-# Restore normal display of artist and album lists
-^https:\/\/(?:\w+-spclient|spclient\.wg)\.spotify\.com(?::443)?\/artistview\/v1\/artist\/(.*)&platform=iphone header https://spclient.wg.spotify.com/artistview/v1/artist/$1&platform=ipad
+# === COMPREHENSIVE AD BLOCKING ===
+
+# Block all advertisement delivery systems
+
+^https://(?:\w+-)?spclient.(?:wg.)?spotify.com(?::443)?/(?:ads|advertising|audio-ads|video-ads|pendragon|commercial|promo|sponsored|promotion)/ reject-dict
+
+# Block banner and display advertisements
+
+^https://(?:\w+-)?spclient.(?:wg.)?spotify.com(?::443)?/(?:banner|display-ads|interstitial|popup)/ reject-dict
+
+# Block analytics and user tracking
+
+^https://(?:\w+-)?spclient.(?:wg.)?spotify.com(?::443)?/(?:analytics|tracking|telemetry|logging|metrics)/ reject-dict
+
+# Block upgrade prompts and premium upsells
+
+^https://(?:\w+-)?spclient.(?:wg.)?spotify.com(?::443)?/(?:upgrade|premium-upsell|subscription-offers|paywall)/ reject-dict
+
+# === ENHANCED EXPERIENCE ===
+
+# Optimize artist and album viewing experience
+
+^https://(?:\w+-)?spclient.(?:wg.)?spotify.com(?::443)?/artistview/v1/artist/(.+)&platform=iphone header-replace https://spclient.wg.spotify.com/artistview/v1/artist/$1&platform=ipad
+
+# Enhanced browse and discovery experience
+
+^https://(?:\w+-)?spclient.(?:wg.)?spotify.com(?::443)?/browse/v1/(.+)&platform=iphone header-replace https://spclient.wg.spotify.com/browse/v1/$1&platform=ipad
+
+# Optimize playlist and library views
+
+^https://(?:\w+-)?spclient.(?:wg.)?spotify.com(?::443)?/(?:playlist|collection)/v1/(.+)&platform=iphone header-replace https://spclient.wg.spotify.com/$1&platform=ipad
 
 [Script]
-http-response ^https:\/\/(?:\w+-spclient|spclient\.wg)\.spotify\.com(?::443)?\/(?:bootstrap|user-customization-service) script-path = https://raw.githubusercontent.com/001ProMax/Surge/main/Script/Spotify.Crack.Dev.js, requires-body = true, binary-body-mode = true, timeout = 5, tag = [Spotify]Protobuf, argument = [{tab},{useractivity}]
+
+# === PREMIUM FEATURES ACTIVATION ===
+
+# Main protobuf manipulation script for premium features
+
+http-response ^https://(?:\w+-)?spclient.(?:wg.)?spotify.com(?::443)?/(?:bootstrap|user-customization-service|clienttoken)/ script-path = https://raw.githubusercontent.com/001ProMax/Surge/main/Script/Spotify.Crack.Dev.js, requires-body = true, binary-body-mode = true, timeout = 20, tag = [Spotify]Premium-Core, argument = [false,{useractivity},{lyrics},{hifi},{offline}]
+
+# Account verification and subscription status
+
+http-response ^https://(?:\w+-)?spclient.(?:wg.)?spotify.com(?::443)?/(?:subscription|account|profile)/ script-path = https://raw.githubusercontent.com/001ProMax/Surge/main/Script/Spotify.Crack.Dev.js, requires-body = true, binary-body-mode = true, timeout = 15, tag = [Spotify]Account-Verify, argument = [false,{useractivity},{lyrics},{hifi},{offline}]
 
 [MitM]
-hostname = *-spclient.spotify.com, spclient.wg.spotify.com
+hostname = *.spotify.com, *spclient.spotify.com, spclient.wg.spotify.com, *.spclient.wg.spotify.com
