@@ -1,0 +1,26 @@
+#!name = Spotify
+#!desc = Filter Spotify ads. Custom plugin configuration changes require re-login to take effect.
+#!openUrl = https://apps.apple.com/app/id324684580
+#!author = devchristian1337[https://github.com/devchristian1337]
+#!tag = Spotify
+#!loon_version = 3.3.4(898)
+#!homepage = https://github.com/devchristian1337/loon-plugins/blob/main/README.md
+#!icon = https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/App-Icons/spotify.png
+#!date = 2025-09-24 12:00
+
+[Argument]
+tab = switch, false, true, tag = Remove bottom bar create button, desc = This switch controls whether to remove the bottom bar create button
+useractivity = switch, true, false, tag = Enable Apple device handoff, desc = This switch controls whether to use Apple device handoff
+
+[Rewrite]
+# Playback ads
+^https:\/\/(?:\w+-spclient|spclient\.wg)\.spotify\.com(?::443)?\/pendragon\/ reject-dict
+
+# Restore normal display of artist and album lists
+^https:\/\/(?:\w+-spclient|spclient\.wg)\.spotify\.com(?::443)?\/artistview\/v1\/artist\/(.*)&platform=iphone header https://spclient.wg.spotify.com/artistview/v1/artist/$1&platform=ipad
+
+[Script]
+http-response ^https:\/\/(?:\w+-spclient|spclient\.wg)\.spotify\.com(?::443)?\/(?:bootstrap|user-customization-service) script-path = https://raw.githubusercontent.com/001ProMax/Surge/main/Script/Spotify.Crack.Dev.js, requires-body = true, binary-body-mode = true, timeout = 5, tag = [Spotify]Protobuf, argument = [{tab},{useractivity}]
+
+[MitM]
+hostname = *-spclient.spotify.com, spclient.wg.spotify.com
