@@ -1,6 +1,6 @@
 #!name = SoundCloud
 #!desc = Unlocks SoundCloud Go+ features.
-#!openUrl = https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/SoundCloud.plugin
+#!openUrl = https://loon-plugins.vercel.app
 #!author = devchristian1337
 #!tag = SoundCloud, Premium
 #!loon_version = 3.3.4(898)
@@ -9,7 +9,7 @@
 #!date = 2026-10-07
 
 [Script]
-http-response https://api-mobile.soundcloud.com/configuration/ios script-path=https://raw.githubusercontent.com/Marol62926/MarScrpt/main/soundcloud.js,requires-body=true,tag=SoundCloud Go+
+http-response https://api-mobile.soundcloud.com/configuration/ios script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/SoundCloud/soundcloud.js,requires-body=true,tag=SoundCloud Go+
 
 [Mitm]
 hostname = api-mobile.soundcloud.com

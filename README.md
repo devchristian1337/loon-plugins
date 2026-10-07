@@ -22,6 +22,7 @@
 - [Troubleshooting](#troubleshooting)
 - [Updates](#updates)
 - [Disclaimer](#disclaimer)
+- [Credits](#credits)
 - [License](#license)
 - [Author](#author)
 
@@ -29,10 +30,10 @@
 
 | Plugin                                                                                                                                                                | Description                                   | Key Features                                                     |
 | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- | ---------------------------------------------------------------- |
-| [Badoo AdBlock](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/Badoo.plugin)   | Blocks the advertising SDKs used by Badoo     | Banner, interstitial and video ad removal, no MITM required      |
-| [Spotify](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/Spotify.plugin)       | Removes ads and unlocks some premium features | No ads, cleaner Home/Search/Now Playing, AI DJ removed           |
-| [YouTube](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/YouTube.plugin)       | Removes ads from the YouTube app              | Ad removal, background playback, subtitle translation, channel blocklist |
-| [SoundCloud](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/SoundCloud.plugin) | Unlocks SoundCloud Go+ features               | Access to premium content and features                           |
+| [Badoo AdBlock](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/Badoo.lpx)   | Blocks the advertising SDKs used by Badoo     | Banner, interstitial and video ad removal, no MITM required      |
+| [Spotify](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/Spotify.lpx)       | Removes ads and unlocks some premium features | No ads, cleaner Home/Search/Now Playing, AI DJ removed           |
+| [YouTube](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/YouTube.lpx)       | Removes ads from the YouTube app              | Ad removal, background playback, subtitle translation, channel blocklist |
+| [SoundCloud](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/SoundCloud.lpx) | Unlocks SoundCloud Go+ features               | Access to premium content and features                           |
 
 ## ✨ Features
 
@@ -76,10 +77,10 @@
 1. Make sure you have [Loon](https://apps.apple.com/app/loon/id1373567447) installed (v3.2.6+)
 2. Enable QUIC fallback protection in Loon settings
 3. Click on the download link for the desired plugin:
-   - [Badoo AdBlock Plugin](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/Badoo.plugin)
-   - [Spotify Plugin](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/Spotify.plugin)
-   - [YouTube Plugin](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/YouTube.plugin)
-   - [SoundCloud Plugin](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/SoundCloud.plugin)
+   - [Badoo AdBlock Plugin](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/Badoo.lpx)
+   - [Spotify Plugin](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/Spotify.lpx)
+   - [YouTube Plugin](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/YouTube.lpx)
+   - [SoundCloud Plugin](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/SoundCloud.lpx)
 4. Loon will prompt you to add the plugin - confirm by tapping "Add Plugin"
 5. For YouTube and Spotify, you can configure plugin settings in the Loon app
 6. Restart the respective app
@@ -130,6 +131,14 @@ Check back regularly for updates to existing plugins and new additions to the co
 These plugins are for personal use only. Use at your own risk. The developer is not responsible for any issues that may arise from using these plugins, including but not limited to account restrictions or app functionality.
 
 The plugins are not affiliated with Badoo, Spotify, YouTube, SoundCloud, or their parent companies in any way.
+
+## 🙏 Credits
+
+The plugin definitions are maintained by devchristian1337. The JavaScript scripts in `Scripts/` are hosted here with their strings translated to English and are based on:
+
+- Spotify: [Amlabort/MY_clash](https://github.com/Amlabort/MY_clash)
+- YouTube: [teaoea/shell](https://github.com/teaoea/shell) (MIT License)
+- SoundCloud: [Marol62926/MarScrpt](https://github.com/Marol62926/MarScrpt)
 
 ## 📄 License
 

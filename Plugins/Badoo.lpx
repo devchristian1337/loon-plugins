@@ -1,6 +1,6 @@
 #!name = Badoo AdBlock
 #!desc = Blocks the advertising SDKs used by the Badoo app (banners, interstitials, videos). No MITM required.
-#!openUrl = https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/Badoo.plugin
+#!openUrl = https://loon-plugins.vercel.app
 #!author = devchristian1337
 #!tag = Badoo, AdBlock
 #!loon_version = 3.3.4(898)
