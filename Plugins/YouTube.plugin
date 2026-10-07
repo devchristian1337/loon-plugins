@@ -1,36 +1,66 @@
 #!name = YouTube
-#!desc = Filter YouTube ads, add Picture-in-Picture, subtitle translation, lyrics translation, and support background playback. Requires QUIC fallback protection. Not supported on tvOS.
+#!desc = Removes ads from the YouTube app, enables background playback and translates existing subtitle tracks (target language zh-CN or en-US, videos without subtitles cannot be translated). Logging captures media response headers only by default, full sampling may add delay. Requires MITM with a trusted certificate.
 #!openUrl = https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/YouTube.plugin
 #!author = devchristian1337
-#!tag = AdBlock
-#!system = 
-#!system_version = 
+#!tag = YouTube, AdBlock
 #!loon_version = 3.3.4(898)
 #!homepage = https://github.com/devchristian1337/loon-plugins/blob/main/README.md
 #!icon = https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/App-Icons/youtube.png
-#!date = 2025-03-05 12:40
+#!date = 2026-10-07
 
 [Argument]
-blockUpload = switch, true, false, tag = Hide Upload Button, desc = Whether to hide the upload button
-blockImmersive = switch, true, false, tag = Hide Selection Button, desc = Whether to hide the selection button
-captionLang = select, "it", "en", "off", tag = Subtitle Translation Language, desc = Choose subtitle translation language
-lyricLang = select, "it", "en", "off", tag = Lyrics Translation Language, desc = Choose lyrics translation language
-debug = switch, false, true, tag = Enable Debug Mode, desc = Whether to enable debug mode
+background_playback = switch,false,tag=Background playback,desc=Keeps audio playing for regular videos after switching app or locking the screen. Live streams and restricted content are still decided by YouTube
+playback_region = select,"original","CN","HK","TW","US","JP","KR","SG","GB","DE","RU",tag=Playback request region,desc=original keeps the current region. Only changes the client gl parameter, the exit IP is unchanged. Ad-blocking effect still to be verified
+translation_enabled = switch,false,tag=Subtitle translation,desc=Translates existing subtitles into the selected target language. When off, the original subtitle request is kept
+translation_target = select,"zh-CN","en-US",tag=Subtitle target language,desc=Only converts existing subtitle tracks (Simplified Chinese zh-CN or US English en-US). Videos without subtitles cannot be translated. Audio track, title and description are unchanged
+hide_home_shorts = switch,false,tag=Hide Home Shorts,desc=Removes the Shorts shelf from the Home feed. The bottom Shorts tab and other pages are kept
+blocked_channels = input,"",tag=Blocked channels,desc=Channel IDs, @handles or full channel names separated by spaces. Prefer channel IDs, use handle or ID for names containing spaces. Leave empty to disable. Only hides videos whose owner can be identified
+blocked_channels_url = input,"",tag=Remote blocked channels URL,desc=Public HTTPS plain-text direct link (e.g. GitHub Raw). Local cache refreshes hourly, or run the update script. Merged with the manual list. Leave empty to disable
+log_enabled = switch,false,tag=Logging tool,desc=Starts automatically on the first matched request and notifies the log entry point. When turned off, the next API hit clears the log and stops sampling, download it first if you need it. Full sampling may add delay
+quality_research = switch,false,tag=Quality research sampling,desc=Only active when the logging tool is on. Records recognizable quality and format parameters and reads small media POST requests for comparison. Does not switch quality automatically
+media_capture_mode = select,"headers","full",tag=Media sampling mode,desc=Only active when the logging tool is on, disabled automatically when logging is off. headers records response headers only. full reads the whole response for development and may add delay
+log_level = select,"info","debug","warn","error",tag=Log level,desc=info keeps the full redacted trace. error keeps errors only. debug keeps debug level. warn keeps warnings and errors
+capture_budget = select,"32","16","64",tag=Log capacity (MB),desc=Recording stops when the limit is reached, existing samples are kept. Clear after exporting
 
 [Rule]
-AND, ((DOMAIN-SUFFIX, googlevideo.com), (PROTOCOL, UDP)), REJECT
-AND, ((DOMAIN-SUFFIX, youtubei.googleapis.com), (PROTOCOL, UDP)), REJECT
+# Force API and playback negotiation to fall back from QUIC to TCP so MITM/scripts can inspect it. Media bodies are not rejected.
+AND,((DOMAIN,youtubei.googleapis.com),(PROTOCOL,UDP),(DEST-PORT,443)),REJECT
+AND,((DOMAIN,youtubei-att.googleapis.com),(PROTOCOL,UDP),(DEST-PORT,443)),REJECT
+# Match googlevideo domains and subdomains by QUIC protocol. UDP/443 is kept as fallback.
+AND,((DOMAIN-SUFFIX,googlevideo.com),(PROTOCOL,QUIC)),REJECT
+AND,((DOMAIN-SUFFIX,googlevideo.com),(PROTOCOL,UDP),(DEST-PORT,443)),REJECT
 
 [Rewrite]
-^https?:\/\/[\w-]+\.googlevideo\.com\/initplayback.+&oad mock-response-body data-type=text status-code=502
-(^https?:\/\/[\w-]+\.googlevideo\.com\/(?!dclk_video_ads).+?)&ctier=L(&.+?),ctier,(.+) 302 $1$2$3
-^https?:\/\/[\w-]+\.googlevideo\.com\/(?!(dclk_video_ads|videoplayback\?)).+&oad reject-200
-^https?:\/\/(www|s)\.youtube\.com\/api\/stats\/ads reject-200
-^https?:\/\/(www|s)\.youtube\.com\/(pagead|ptracking) reject-200
-^https?:\/\/s\.youtube\.com\/api\/stats\/qoe\?adcontext reject-200
+# Only the YouTube app init POST returns Loon's built-in blank video. The body is not read and regular media is unaffected.
+# Updated 2026-10-05. Replaces the failed HTTP 204 experiment. Playback fallback recovery still needs device verification.
+request if ${url} ~= /^https:\/\/[a-z0-9-]+\.googlevideo\.com\/initplayback(?:\?[^#]*)?$/i && ${request.method} == "POST" && ${request.header['User-Agent']} ~= /(?:^|\s)com\.google\.ios\.youtube\//i then reject_video(200)
+# Clear the alternative connection hint from media sources to reduce QUIC retries after rejection. Response headers only.
+# Updated 2026-10-05. Actual startup delay still needs device verification, the client may use other HTTP/3 discovery methods.
+^https://(?:[\w-]+\.)*googlevideo\.com(?::443)?/ response-header-replace Alt-Svc clear
 
 [Script]
-http-response ^https?:\/\/youtubei\.googleapis\.com\/youtubei\/v1\/(?:browse|next|player|search|reel\/reel_watch_sequence|guide|account\/get_setting|get_watch) script-path = https://raw.githubusercontent.com/Maasea/sgmodule/master/Script/Youtube/dist/youtube.response.preview.js, requires-body = true, binary-body-mode = true, tag = YouTube Response, argument=[{blockUpload},{blockImmersive},{captionLang},{lyricLang},{debug}]
+# Refreshes the channel list cache independently. The feed script only reads the cache and never waits for a remote download.
+# Updated 2026-10-07
+cron "0 * * * *" script-path=https://raw.githubusercontent.com/teaoea/shell/main/plugins/YouTube/dist/request.min.js,timeout=10,argument=[{blocked_channels_url}],tag=YouTube scheduled blocked channels update
+generic script-path=https://raw.githubusercontent.com/teaoea/shell/main/plugins/YouTube/dist/request.min.js,timeout=10,argument=[{blocked_channels_url}],tag=YouTube update blocked channels,img-url=person.crop.circle.badge.xmark.system
+http-request ^https:\/\/(?:www\.|m\.)?youtube\.com\/api\/timedtext\?[^#]+$ script-path=https://raw.githubusercontent.com/teaoea/shell/main/plugins/YouTube/dist/request.min.js,requires-body=false,timeout=10,enable={translation_enabled},argument=[{translation_enabled},{translation_target}],tag=YouTube subtitle target language
+# Reads videoplayback POST only when logging and quality research are explicitly enabled. Does not hit the blank init video.
+# Updated 2026-10-07. Must match before the regular log entry, no body buffering by default.
+request if ${url} ~= /^https:\/\/[\w-]+\.googlevideo\.com\/videoplayback(?:\?[^#]*)?$/i && ${request.method} == "POST" && ${log_enabled} == true && ${quality_research} == true then script("https://raw.githubusercontent.com/teaoea/shell/main/plugins/YouTube/dist/request.min.js", {${log_enabled}, ${log_level}, ${capture_budget}, ${quality_research}}) with requires_body=true, binary_body_mode=true, timeout=10, tag="YouTube quality research request sampling"
+http-request ^https:\/\/(?:youtubei(?:-att)?\.googleapis\.com|(?:www\.|m\.|music\.)?youtube\.com)\/youtubei\/v1\/(?:browse|next|search|reel\/reel_watch_sequence)(?:\?[^#]*)?$|^https:\/\/[\w-]+\.googlevideo\.com\/videoplayback\?[^#]*$|^http:\/\/youtube-logs\.invalid(?::80)?(?:\/[^#]*)?$|^https:\/\/[\w-]+\.googlevideo\.com\/initplayback(?:\?[^#]*)?$ script-path=https://raw.githubusercontent.com/teaoea/shell/main/plugins/YouTube/dist/request.min.js,requires-body=false,timeout=10,enable={log_enabled},argument=[{log_enabled},{log_level},{capture_budget},{background_playback},{media_capture_mode},{quality_research}],tag=YouTube logging and export
+http-request ^https:\/\/(?:youtubei(?:-att)?\.googleapis\.com|(?:www\.|m\.)?youtube\.com)\/youtubei\/v1\/log_event(?:\?[^#]*)?$ script-path=https://raw.githubusercontent.com/teaoea/shell/main/plugins/YouTube/dist/request.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument=[{log_enabled},{log_level},{capture_budget},{playback_region}],tag=YouTube config request handling
+# Media sampling is controlled by the logging master switch. When off, neither headers nor full runs. The saved mode option does not mean sampling is active.
+# Full sampling must be selected before the body is received. Only the first matching script runs for a given response. The default header entry does not pass full to avoid reading the body by mistake.
+response if ${url} ~= /^https:\/\/[\w-]+\.googlevideo\.com\/(?:videoplayback|initplayback)(?:\?[^#]*)?$/i && ${log_enabled} == true && ${media_capture_mode} == "full" then script("https://raw.githubusercontent.com/teaoea/shell/main/plugins/YouTube/dist/response.min.js", {${log_enabled}, ${log_level}, ${capture_budget}, ${media_capture_mode}}) with requires_body=true, binary_body_mode=true, timeout=30, tag="YouTube full media development sampling"
+http-response ^https:\/\/[\w-]+\.googlevideo\.com\/(?:videoplayback|initplayback)(?:\?[^#]*)?$ script-path=https://raw.githubusercontent.com/teaoea/shell/main/plugins/YouTube/dist/response.min.js,requires-body=false,timeout=10,enable={log_enabled},argument=[{log_enabled},{log_level},{capture_budget}],tag=YouTube media response logging
+http-response ^https:\/\/(?:youtubei(?:-att)?\.googleapis\.com|(?:www\.|m\.)?youtube\.com)\/youtubei\/v1\/(?:config|log_event)(?:\?[^#]*)?$ script-path=https://raw.githubusercontent.com/teaoea/shell/main/plugins/YouTube/dist/response.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument=[{log_enabled},{log_level},{capture_budget}],tag=YouTube Onesie config cache
 
-[MitM]
-hostname = -redirector*.googlevideo.com, *.googlevideo.com, www.youtube.com, s.youtube.com, youtubei.googleapis.com
+http-request ^https:\/\/(?:youtubei(?:-att)?\.googleapis\.com|(?:www\.|m\.|music\.)?youtube\.com)\/youtubei\/v1\/(?:player|get_watch)(?:\?[^#]*)?$|^https:\/\/(?:youtubei(?:-att)?\.googleapis\.com|(?:www\.|m\.|music\.)?youtube\.com)\/youtubei\/v1\/player\/ad_break(?:\?[^#]*)?$ script-path=https://raw.githubusercontent.com/teaoea/shell/main/plugins/YouTube/dist/request.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument=[{log_enabled},{log_level},{capture_budget},{playback_region}],tag=YouTube playback request and ad config handling
+
+http-response ^https:\/\/(?:youtubei(?:-att)?\.googleapis\.com|(?:www\.|m\.|music\.)?youtube\.com)\/youtubei\/v1\/(browse|next|search)(\?[^#]*)?$ script-path=https://raw.githubusercontent.com/teaoea/shell/main/plugins/YouTube/dist/response.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument=[{log_enabled},{log_level},{capture_budget},{hide_home_shorts},{blocked_channels},{blocked_channels_url}],tag=YouTube feed ads and Home Shorts handling
+http-response ^https:\/\/(?:youtubei(?:-att)?\.googleapis\.com|(?:www\.|m\.|music\.)?youtube\.com)\/youtubei\/v1\/(player|get_watch)(\?[^#]*)?$|^https:\/\/(?:youtubei(?:-att)?\.googleapis\.com|(?:www\.|m\.|music\.)?youtube\.com)\/youtubei\/v1\/reel\/reel_watch_sequence(?:\?[^#]*)?$ script-path=https://raw.githubusercontent.com/teaoea/shell/main/plugins/YouTube/dist/response.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument=[{log_enabled},{log_level},{capture_budget},{background_playback},{quality_research}],tag=YouTube playback response and background playback
+
+[Mitm]
+hostname = youtubei.googleapis.com, youtubei-att.googleapis.com, youtube.com, www.youtube.com, m.youtube.com, music.youtube.com, *.googlevideo.com
+# With logging off, neither init nor regular media responses run body-sampling scripts. The init POST is handled by the native blank video rewrite, regular playback requests still get ad negotiation cleanup.
+# googlevideo UDP only falls back to TCP, regular videoplayback media requests are still allowed.

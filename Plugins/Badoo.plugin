@@ -1,0 +1,55 @@
+#!name = Badoo AdBlock
+#!desc = Blocks the advertising SDKs used by the Badoo app (banners, interstitials, videos). No MITM required.
+#!openUrl = https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/Badoo.plugin
+#!author = devchristian1337
+#!tag = Badoo, AdBlock
+#!loon_version = 3.3.4(898)
+#!homepage = https://github.com/devchristian1337/loon-plugins/blob/main/README.md
+#!icon = https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/App-Icons/badoo.png
+#!date = 2026-10-07
+
+[Rule]
+# Google AdMob / Ad Manager (main banner network used by Badoo)
+DOMAIN-SUFFIX,googleads.g.doubleclick.net,REJECT
+DOMAIN-SUFFIX,pubads.g.doubleclick.net,REJECT
+DOMAIN-SUFFIX,securepubads.g.doubleclick.net,REJECT
+DOMAIN-SUFFIX,googlesyndication.com,REJECT
+DOMAIN-SUFFIX,googleadservices.com,REJECT
+DOMAIN,imasdk.googleapis.com,REJECT
+
+# Meta Audience Network (ads domain only, Facebook login keeps working)
+DOMAIN,an.facebook.com,REJECT
+
+# Amazon Publisher Services
+DOMAIN-SUFFIX,amazon-adsystem.com,REJECT
+
+# AppLovin / MAX (mediation)
+DOMAIN-SUFFIX,applovin.com,REJECT
+DOMAIN-SUFFIX,applvn.com,REJECT
+
+# ironSource / Unity Ads
+DOMAIN-SUFFIX,supersonicads.com,REJECT
+DOMAIN-SUFFIX,ironsrc.mobi,REJECT
+DOMAIN-SUFFIX,unityads.unity3d.com,REJECT
+
+# Liftoff / Vungle
+DOMAIN-SUFFIX,vungle.com,REJECT
+
+# InMobi
+DOMAIN-SUFFIX,inmobi.com,REJECT
+
+# Mintegral
+DOMAIN-SUFFIX,rayjump.com,REJECT
+DOMAIN-SUFFIX,mintegral.com,REJECT
+
+# Pangle
+DOMAIN-SUFFIX,pangle.io,REJECT
+
+# Programmatic exchanges (header bidding)
+DOMAIN-SUFFIX,smaato.net,REJECT
+DOMAIN-SUFFIX,pubmatic.com,REJECT
+DOMAIN-SUFFIX,openx.net,REJECT
+DOMAIN-SUFFIX,adnxs.com,REJECT
+DOMAIN-SUFFIX,rubiconproject.com,REJECT
+DOMAIN-SUFFIX,criteo.com,REJECT
+DOMAIN-SUFFIX,adcolony.com,REJECT
