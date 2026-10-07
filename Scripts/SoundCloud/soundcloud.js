@@ -1,4 +1,3 @@
-// SoundCloud script: based on https://github.com/Marol62926/MarScrpt (soundcloud.js). Hosted by devchristian1337.
 var body = $response.body; 
 var obj = JSON.parse(body); 
 

@@ -22,7 +22,6 @@
 - [Troubleshooting](#troubleshooting)
 - [Updates](#updates)
 - [Disclaimer](#disclaimer)
-- [Credits](#credits)
 - [License](#license)
 - [Author](#author)
 
@@ -131,14 +130,6 @@ Check back regularly for updates to existing plugins and new additions to the co
 These plugins are for personal use only. Use at your own risk. The developer is not responsible for any issues that may arise from using these plugins, including but not limited to account restrictions or app functionality.
 
 The plugins are not affiliated with Badoo, Spotify, YouTube, SoundCloud, or their parent companies in any way.
-
-## 🙏 Credits
-
-The plugin definitions are maintained by devchristian1337. The JavaScript scripts in `Scripts/` are hosted here with their strings translated to English and are based on:
-
-- Spotify: [Amlabort/MY_clash](https://github.com/Amlabort/MY_clash)
-- YouTube: [teaoea/shell](https://github.com/teaoea/shell) (MIT License)
-- SoundCloud: [Marol62926/MarScrpt](https://github.com/Marol62926/MarScrpt)
 
 ## 📄 License
 

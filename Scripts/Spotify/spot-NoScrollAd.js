@@ -1,4 +1,3 @@
-// Spotify scripts: based on https://github.com/Amlabort/MY_clash (files/lpx/js). Strings translated to English, hosted by devchristian1337.
 // get the binary response body
 let body = $response.body;
 
