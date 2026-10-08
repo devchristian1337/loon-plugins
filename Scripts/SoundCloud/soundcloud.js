@@ -1,4 +1,5 @@
-// Unlocks SoundCloud Go+ by rewriting the plan and feature flags of the iOS configuration.
+// Unlocks SoundCloud Go+ by rewriting the plan and feature flags of the iOS configuration,
+// and removes the upgrade entry points (Upgrade tab, "listen without ads" badge) it lists in upsells.
 // Any unexpected response (empty body, not JSON) is passed through unchanged.
 
 const plan = {
@@ -25,6 +26,7 @@ try {
   const obj = JSON.parse($response.body);
   obj.plan = plan;
   obj.features = features;
+  obj.upsells = {};
   $done({ body: JSON.stringify(obj) });
 } catch (e) {
   console.log(`SoundCloud: response left unchanged (${e})`);
