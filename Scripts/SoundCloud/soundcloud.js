@@ -1,5 +1,6 @@
 // Unlocks SoundCloud Go+ by rewriting the plan and feature flags of the iOS configuration,
-// and removes the upgrade entry points (Upgrade tab, "listen without ads" badge) it lists in upsells.
+// and empties the upgrade entry points (Upgrade tab, "listen without ads" badge) it lists in upsells.
+// Recent app versions load those entry points from the GraphQL API instead: see soundcloud-upsells.js.
 // Any unexpected response (empty body, not JSON) is passed through unchanged.
 
 const plan = {

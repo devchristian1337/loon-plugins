@@ -32,7 +32,7 @@
 | [Badoo AdBlock](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/Badoo.lpx)   | Blocks the advertising SDKs used by Badoo     | Banner, interstitial and video ad removal, no MITM required      |
 | [Spotify](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/Spotify.lpx)       | Removes ads and unlocks some premium features | No ads, cleaner Home/Search/Now Playing, AI DJ removed           |
 | [YouTube](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/YouTube.lpx)       | Removes ads from the YouTube app              | Ad removal, background playback, subtitle translation, channel blocklist |
-| [SoundCloud](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/SoundCloud.lpx) | Unlocks SoundCloud Go+ features               | Access to premium content and features                           |
+| [SoundCloud](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/SoundCloud.lpx) | Unlocks SoundCloud Go+ features               | Premium content and features, Upgrade tab and badge removed      |
 
 ## ✨ Features
 
@@ -62,6 +62,7 @@
 
 - 🔓 Unlock SoundCloud Go+ premium features
 - 🎵 Access to premium-only tracks and content
+- 🧹 Removes the Upgrade tab and the "listen without ads" badge
 
 ## 📝 Requirements
 
