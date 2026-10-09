@@ -21,6 +21,7 @@
 - [How These Plugins Work](#how-these-plugins-work)
 - [Troubleshooting](#troubleshooting)
 - [Updates](#updates)
+- [Star History](#star-history)
 - [Disclaimer](#disclaimer)
 - [License](#license)
 - [Author](#author)
@@ -125,6 +126,16 @@ These plugins use various techniques to enhance your app experience:
 ## 🔄 Updates
 
 Check back regularly for updates to existing plugins and new additions to the collection.
+
+## ⭐ Star History
+
+<a href="https://www.star-history.com/?repos=devchristian1337%2Floon-plugins&type=date&legend=top-left">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=devchristian1337/loon-plugins&type=date&legend=top-left&theme=dark" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=devchristian1337/loon-plugins&type=date&legend=top-left" />
+    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=devchristian1337/loon-plugins&type=date&legend=top-left" />
+  </picture>
+</a>
 
 ## ⚠️ Disclaimer
 
