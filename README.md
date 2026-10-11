@@ -34,6 +34,7 @@
 | [Spotify](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/Spotify.lpx)       | Removes ads and unlocks some premium features | No ads, cleaner Home/Search/Now Playing, AI DJ removed           |
 | [YouTube](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/YouTube.lpx)       | Removes ads from the YouTube app              | Ad removal, background playback, subtitle translation, channel blocklist |
 | [SoundCloud](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/SoundCloud.lpx) | Unlocks SoundCloud Go+ features               | Premium content and features, Upgrade tab and badge removed      |
+| [Tinder AdBlock](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/Tinder.lpx) | Hides Tinder ads and upsells                  | No ads in the card stack, no Gold/Platinum upsell modals         |
 
 ## ✨ Features
 
@@ -65,11 +66,18 @@
 - 🎵 Access to premium-only tracks and content
 - 🧹 Removes the Upgrade tab and the "listen without ads" badge
 
+### Tinder AdBlock Plugin
+
+- 🚫 No ads in the card stack, Explore and match list
+- 🙈 Hides the Gold/Platinum upsell modals, tooltips and merchandising cards
+- 🎬 The rewarded video that grants extra likes keeps working
+- ⚠️ Premium features are not unlocked: likes, Rewind, Passport and Likes You are enforced by the server
+
 ## 📝 Requirements
 
 - iOS device with [Loon](https://apps.apple.com/app/loon/id1373567447) installed (version 3.2.6 or newer)
 - QUIC fallback protection enabled in Loon settings
-- MITM enabled with a trusted certificate for Spotify, YouTube and SoundCloud
+- MITM enabled with a trusted certificate for Spotify, YouTube, SoundCloud and Tinder
 - Not supported on tvOS devices
 - For Spotify: log in again after enabling the plugin
 
@@ -82,6 +90,7 @@
    - [Spotify Plugin](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/Spotify.lpx)
    - [YouTube Plugin](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/YouTube.lpx)
    - [SoundCloud Plugin](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/SoundCloud.lpx)
+   - [Tinder AdBlock Plugin](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/Tinder.lpx)
 4. Loon will prompt you to add the plugin - confirm by tapping "Add Plugin"
 5. For YouTube and Spotify, you can configure plugin settings in the Loon app
 6. Restart the respective app
@@ -123,6 +132,12 @@ These plugins use various techniques to enhance your app experience:
 - Restart the app after installing the plugin
 - Some region-restricted content may still be unavailable
 
+**Tinder AdBlock Plugin Issues:**
+
+- Force-close Tinder and reopen it so the configuration is fetched again
+- Check that MITM is active for api.gotinder.com
+- Like limits and Gold features stay as they are: they are enforced by Tinder's servers
+
 ## 🔄 Updates
 
 Check back regularly for updates to existing plugins and new additions to the collection.
@@ -141,7 +156,7 @@ Check back regularly for updates to existing plugins and new additions to the co
 
 These plugins are for personal use only. Use at your own risk. The developer is not responsible for any issues that may arise from using these plugins, including but not limited to account restrictions or app functionality.
 
-The plugins are not affiliated with Badoo, Spotify, YouTube, SoundCloud, or their parent companies in any way.
+The plugins are not affiliated with Badoo, Spotify, YouTube, SoundCloud, Tinder, or their parent companies in any way.
 
 ## 📄 License
 
