@@ -8,7 +8,7 @@
 // When no client returns a usable URL, the notification reports what each client answered.
 
 // Shown in the notifications so the running script version can be told from a cached one.
-var VERSION = "v5";
+var VERSION = "v6";
 
 // Per-request timeout in milliseconds (Loon reads $httpClient timeouts in ms). Kept short so the
 // whole probe (4 clients, one retry each, plus the control request) stays within the rule timeout.
@@ -76,6 +76,13 @@ function enabled() {
   return s === "true" || s === "1";
 }
 
+// First separate track with a URL (the kind the app's downloader asks for), for the probes.
+function firstAdaptiveUrl(adaptive) {
+  var i;
+  for (i = 0; i < adaptive.length; i++) if (adaptive[i].url) return adaptive[i].url;
+  return null;
+}
+
 // Picks the best downloadable format: progressive MP4 by height, else an audio track.
 function pickFormat(streamingData) {
   var formats = (streamingData && streamingData.formats) || [];
@@ -85,8 +92,8 @@ function pickFormat(streamingData) {
     if (!f.url || !/mp4/.test(f.mimeType || "")) continue;
     if (!best || (f.height || 0) > (best.height || 0)) best = f;
   }
-  if (best) return { url: best.url, label: (best.qualityLabel || (best.height + "p")) + " MP4" };
   var adaptive = (streamingData && streamingData.adaptiveFormats) || [], audio = null;
+  if (best) return { url: best.url, label: (best.qualityLabel || (best.height + "p")) + " MP4", alt: firstAdaptiveUrl(adaptive) };
   for (i = 0; i < adaptive.length; i++) {
     var a = adaptive[i];
     if (!a.url || !/^audio\/mp4/.test(a.mimeType || "")) continue;
@@ -158,9 +165,30 @@ function probe(videoId, baseHeaders, index, report, errors, finish) {
     if (!json) { report.push(c.name + ": risposta non JSON (" + (response && response.status) + ")"); return probe(videoId, baseHeaders, index + 1, report, errors, finish); }
     var ps = json.playabilityStatus || {};
     var pick = ps.status === "OK" ? pickFormat(json.streamingData) : null;
-    if (pick) return finish({ client: c.name, url: pick.url, label: pick.label }, report, errors);
+    if (pick) return finish({ client: c.name, url: pick.url, label: pick.label, alt: pick.alt || null }, report, errors);
     report.push(describe(c.name, ps.status, ps.reason, json.streamingData));
     probe(videoId, baseHeaders, index + 1, report, errors, finish);
+  });
+}
+
+// Probes the found URL from the device itself, with three request shapes, and reports the
+// status of each: tells whether the media servers accept the URL at all and which shape.
+var VR_UA = "com.google.android.apps.youtube.vr.oculus/1.65.10 (Linux; U; Android 12L; eureka-user Build/SQ3A.220605.009.A1) gzip";
+var PROBES = [
+  { name: "UA Oculus+Range", headers: function () { return { "User-Agent": VR_UA, "Range": "bytes=0-1023" }; }, suffix: "" },
+  { name: "UA app", headers: function () { return { "User-Agent": "YouTube/21.41.5 CFNetwork/3896.100.1.2.1 Darwin/27.0.0" }; }, suffix: "" },
+  { name: "range param", headers: function () { return { "User-Agent": VR_UA }; }, suffix: "&range=0-1023" }
+];
+
+function probeUrl(found, index, results, finish) {
+  // The three shapes on the chosen (muxed) URL, then the first shape on a separate track.
+  var p = index < PROBES.length ? PROBES[index] : (index === PROBES.length && found.alt ? PROBES[0] : null);
+  if (!p) return finish(results);
+  var url = (index < PROBES.length ? found.url : found.alt) + p.suffix;
+  $httpClient.get({ url: url, headers: p.headers(), timeout: REQUEST_TIMEOUT, "binary-mode": true, "auto-redirect": true }, function (error, response, data) {
+    var size = data ? (data.length || data.byteLength || 0) : 0;
+    results.push((index < PROBES.length ? p.name : "traccia separata") + ": " + (error ? "errore " + errorText(error).slice(0, 40) : (response && response.status) + " " + size + "B"));
+    probeUrl(found, index + 1, results, finish);
   });
 }
 
@@ -177,9 +205,13 @@ try {
     probe(videoId, $request.headers || {}, 0, [], [], function (found, report, errors) {
       try {
         if (found) {
-          $notification.post("YouTube download " + VERSION, found.label + " via " + found.client, "Tocca per aprire il file in Safari e salvarlo", { openUrl: found.url, "open-url": found.url });
-          console.log("YouTube download link: " + found.label + " via " + found.client);
-          remember("OK " + found.label + " via " + found.client + " | " + report.join(" | "));
+          probeUrl(found, 0, [], function (results) {
+            $notification.post("YouTube download " + VERSION, found.label + " via " + found.client + " | " + results.join(" | "), "Tocca per aprire il file in Safari e salvarlo", { openUrl: found.url, "open-url": found.url });
+            console.log("YouTube download link: " + found.label + " via " + found.client + " | " + results.join(" | "));
+            remember("OK " + found.label + " via " + found.client + " | " + results.join(" | ") + " | " + report.join(" | "));
+            $done({});
+          });
+          return;
         } else {
           $notification.post("YouTube download " + VERSION, "Nessun URL diretto per " + videoId, report.join(" | "));
           // The first error in full, in its own notification, so nothing is lost to truncation.
