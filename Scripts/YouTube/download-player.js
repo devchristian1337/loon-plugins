@@ -5,16 +5,18 @@
 // on that request, drops the offline flag and the empty params so the server answers as for
 // ordinary playback, and handles the request as selected:
 //   MERGED      the script itself asks the server twice, as the app's own client and as the
-//               Android client, and answers the app with the iOS message whose formats carry
-//               the direct media URLs of the Android one (SABR and HLS entries removed), the
-//               shape of an offline answer: iOS layout plus downloadable URLs.
+//               Oculus client (Android phone client as fallback), and answers the app with the
+//               iOS message whose formats carry the direct media URLs of the other one (SABR
+//               and HLS entries removed), the shape of an offline answer: iOS layout plus
+//               downloadable URLs. Oculus URLs are served to any user agent; Android ones are
+//               refused (403) without a token the app does not have.
 //   IOS         the app's own client and token: SABR plus HLS manifest, no direct URLs.
 //   ANDROID_VR  Oculus client, no token: muxed 360p MP4 plus separate tracks with direct URLs.
 //   ANDROID     Android phone client, no token: separate tracks with direct URLs, all qualities.
 // Every other player request gets the same ad-related cleanup that request.min.js applies,
 // since only one request script runs per request.
 
-var VERSION = "v4";
+var VERSION = "v5";
 
 // Timeout of each request the script sends itself, in milliseconds (Loon reads them in ms).
 var REQUEST_TIMEOUT = 8000;
@@ -286,41 +288,51 @@ function fetchPlayer(url, headers, body, callback) {
   });
 }
 
-// Asks the server as the app's own client and as the Android client, merges the answers and
-// returns them to the app as the response; falls back to the plain iOS request on any failure.
+// Asks the server as the app's own client and as the Oculus client (Android phone client when
+// the Oculus answer is missing or unplayable), merges the answers and returns them to the app
+// as the response; falls back to the plain iOS request on any failure.
 function mergedPlayer(body, fallbackBody) {
   var url = String($request.url || ""), headers = $request.headers || {};
-  var iosBody = fallbackBody, androidBody = rewriteOfflinePlayer(body, CLIENTS.ANDROID);
-  var results = {}, pending = 2, failed = null;
+  var results = {}, pending = 2, failed = null, retried = false;
   // The outcome is also posted as a notification, so it can be read without the script log.
   function notify(subtitle, text) {
     try { $notification.post("YouTube download player " + VERSION, subtitle, text); } catch (e) {}
   }
+  function usable(bytes) {
+    try { return !!bytes && playable(parseFields(bytes)); } catch (e) { return false; }
+  }
   function finish() {
+    if (!failed && !usable(results.urls) && !retried) {
+      // Oculus answer missing or unplayable: one more try with the Android phone client.
+      retried = true; pending = 1; results.source = "ANDROID";
+      return fetchPlayer(url, cleanHeaders(spoofHeaders(headers, CLIENTS.ANDROID)), rewriteOfflinePlayer(body, CLIENTS.ANDROID), done("urls"));
+    }
     if (failed) {
       console.log("YouTube download player " + VERSION + ": merge skipped (" + failed + "), plain iOS request sent");
       notify("Fusione saltata, inviata richiesta iOS", String(failed).slice(0, 300));
       return $done({ body: fallbackBody });
     }
     var merged = null, summary = "";
-    try { merged = mergeResponses(results.ios, results.android); summary = mergeSummary; } catch (e) { merged = null; failed = String(e); }
+    try { merged = mergeResponses(results.ios, results.urls); summary = mergeSummary; } catch (e) { merged = null; failed = String(e); }
     if (!merged) {
       console.log("YouTube download player " + VERSION + ": nothing merged (" + (failed || "no urls") + "), plain iOS request sent");
       notify("Nessun URL unito, inviata richiesta iOS", String(failed || "no urls").slice(0, 300));
       return $done({ body: fallbackBody });
     }
-    notify("Risposta unita consegnata all'app", summary + ", " + merged.length + " byte");
+    notify("Risposta unita consegnata all'app", summary + " da " + results.source + ", " + merged.length + " byte");
     $done({ response: { status: 200, headers: { "Content-Type": "application/x-protobuf" }, body: merged } });
   }
   function done(name) {
     return function (error, bytes) {
-      if (error) failed = failed || (name + " " + error);
-      else results[name] = bytes;
+      // A failed URL request is not fatal before the Android retry has been tried.
+      if (error && (name !== "urls" || retried)) failed = failed || (name + " " + error);
+      else if (!error) results[name] = bytes;
       if (--pending === 0) finish();
     };
   }
-  fetchPlayer(url, cleanHeaders(headers), iosBody, done("ios"));
-  fetchPlayer(url, cleanHeaders(spoofHeaders(headers, CLIENTS.ANDROID)), androidBody, done("android"));
+  results.source = "ANDROID_VR";
+  fetchPlayer(url, cleanHeaders(headers), fallbackBody, done("ios"));
+  fetchPlayer(url, cleanHeaders(spoofHeaders(headers, CLIENTS.ANDROID_VR)), rewriteOfflinePlayer(body, CLIENTS.ANDROID_VR), done("urls"));
 }
 
 // Loon passes argument=[{native_download},{native_download_client},{playback_region}] as an
