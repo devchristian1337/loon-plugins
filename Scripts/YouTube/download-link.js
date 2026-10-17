@@ -8,17 +8,20 @@
 // When no client returns a usable URL, the notification reports what each client answered.
 
 // Shown in the notifications so the running script version can be told from a cached one.
-var VERSION = "v4";
+var VERSION = "v5";
 
 // Per-request timeout in milliseconds (Loon reads $httpClient timeouts in ms). Kept short so the
 // whole probe (4 clients, one retry each, plus the control request) stays within the rule timeout.
 var REQUEST_TIMEOUT = 4000, CONTROL_TIMEOUT = 3000;
 
 var CLIENTS = [
-  { name: "ANDROID_VR", version: "1.62.27", ua: "com.google.android.apps.youtube.vr.oculus/1.62.27 (Linux; U; Android 12L; eureka-user Build/SQ3A.220605.009.A1) gzip", extra: { androidSdkVersion: 32 } },
-  { name: "TVHTML5", version: "7.20250312.16.00", ua: "Mozilla/5.0 (ChromiumStylePlatform) Cobalt/Version", extra: {} },
-  { name: "IOS", version: "20.40.1", ua: "com.google.ios.youtube/20.40.1 (iPhone16,2; U; CPU iOS 18_6 like Mac OS X;)", extra: { deviceMake: "Apple", deviceModel: "iPhone16,2", osName: "iPhone", osVersion: "18.6" } },
-  { name: "MWEB", version: "2.20250312.00.00", ua: "Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Mobile/15E148 Safari/604.1", extra: {} }
+  // Oculus client: the only one still answering with muxed (video+audio) MP4 formats. It is sent
+  // without the app's OAuth token, which belongs to the iOS client and makes the request invalid.
+  { name: "ANDROID_VR", version: "1.65.10", ua: "com.google.android.apps.youtube.vr.oculus/1.65.10 (Linux; U; Android 12L; eureka-user Build/SQ3A.220605.009.A1) gzip", extra: { deviceMake: "Oculus", deviceModel: "Quest 3", osName: "Android", osVersion: "12L", androidSdkVersion: 32 }, auth: false },
+  // The app's own client, with its token: answers with separate video and audio tracks (no muxed file).
+  { name: "IOS", version: "20.40.1", ua: "com.google.ios.youtube/20.40.1 (iPhone16,2; U; CPU iOS 18_6 like Mac OS X;)", extra: { deviceMake: "Apple", deviceModel: "iPhone16,2", osName: "iPhone", osVersion: "18.6" }, auth: true },
+  { name: "TVHTML5", version: "7.20250312.16.00", ua: "Mozilla/5.0 (ChromiumStylePlatform) Cobalt/Version", extra: {}, auth: true },
+  { name: "MWEB", version: "2.20250312.00.00", ua: "Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Mobile/15E148 Safari/604.1", extra: {}, auth: true }
 ];
 
 function readVarint(buf, pos) {
@@ -83,11 +86,13 @@ function pickFormat(streamingData) {
     if (!best || (f.height || 0) > (best.height || 0)) best = f;
   }
   if (best) return { url: best.url, label: (best.qualityLabel || (best.height + "p")) + " MP4" };
-  var adaptive = (streamingData && streamingData.adaptiveFormats) || [];
+  var adaptive = (streamingData && streamingData.adaptiveFormats) || [], audio = null;
   for (i = 0; i < adaptive.length; i++) {
     var a = adaptive[i];
-    if (a.url && /^audio\/mp4/.test(a.mimeType || "")) return { url: a.url, label: "audio M4A" + (a.bitrate ? " " + Math.round(a.bitrate / 1000) + " kbps" : "") };
+    if (!a.url || !/^audio\/mp4/.test(a.mimeType || "")) continue;
+    if (!audio || (a.bitrate || 0) > (audio.bitrate || 0)) audio = a;
   }
+  if (audio) return { url: audio.url, label: "audio M4A" + (audio.bitrate ? " " + Math.round(audio.bitrate / 1000) + " kbps" : "") };
   return null;
 }
 
@@ -137,7 +142,7 @@ function probe(videoId, baseHeaders, index, report, errors, finish) {
   var keys = Object.keys(c.extra), i;
   for (i = 0; i < keys.length; i++) client[keys[i]] = c.extra[keys[i]];
   var headers = { "Content-Type": "application/json", "User-Agent": c.ua, "Accept-Language": "it-IT,it;q=0.9" };
-  var auth = header(baseHeaders, "authorization"), visitor = header(baseHeaders, "x-goog-visitor-id");
+  var auth = c.auth ? header(baseHeaders, "authorization") : null, visitor = header(baseHeaders, "x-goog-visitor-id");
   if (auth) headers["Authorization"] = auth;
   if (visitor) headers["X-Goog-Visitor-Id"] = visitor;
   send("post", {
