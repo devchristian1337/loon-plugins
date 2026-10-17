@@ -139,10 +139,20 @@ function toBytes(body) {
   return null;
 }
 
+// Loon passes argument=[{native_download}] as an object keyed by argument name; other forms
+// (array, "true", "[true]", "native_download=true") are accepted too.
 function enabled() {
   var a = typeof $argument === "undefined" ? null : $argument;
-  if (Array.isArray(a)) a = a[0];
-  return a === true || String(a).toLowerCase() === "true";
+  if (a && typeof a === "object" && !Array.isArray(a)) {
+    a = "native_download" in a ? a.native_download : a[Object.keys(a)[0]];
+  } else if (Array.isArray(a)) {
+    a = a[0];
+  }
+  if (a === true) return true;
+  var s = String(a === null || a === undefined ? "" : a).trim().toLowerCase();
+  s = s.replace(/^\[|\]$/g, "").split(",")[0].trim();
+  if (s.indexOf("=") >= 0) s = s.split("=")[1].trim();
+  return s === "true" || s === "1";
 }
 
 try {
