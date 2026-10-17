@@ -93,8 +93,17 @@ function describe(client, status, reason, streamingData) {
   return client + ": " + detail;
 }
 
+// Control request to a host outside the MITM list, to tell a general network failure of the
+// script runtime from a failure specific to the YouTube host.
+function control(report, finish) {
+  $httpClient.get({ url: "https://www.gstatic.com/generate_204", timeout: 5 }, function (error, response) {
+    report.push("controllo gstatic: " + (error ? "errore (" + String(error && error.message ? error.message : error).slice(0, 60) + ")" : "ok " + (response && response.status)));
+    finish(null, report);
+  });
+}
+
 function probe(videoId, baseHeaders, index, report, finish) {
-  if (index >= CLIENTS.length) return finish(null, report);
+  if (index >= CLIENTS.length) return control(report, finish);
   var c = CLIENTS[index];
   var client = { clientName: c.name, clientVersion: c.version, hl: "it", gl: "IT" };
   var keys = Object.keys(c.extra), i;
@@ -109,7 +118,7 @@ function probe(videoId, baseHeaders, index, report, finish) {
     timeout: 8,
     body: JSON.stringify({ context: { client: client }, videoId: videoId, contentCheckOk: true, racyCheckOk: true })
   }, function (error, response, data) {
-    if (error) { report.push(c.name + ": errore rete"); return probe(videoId, baseHeaders, index + 1, report, finish); }
+    if (error) { report.push(c.name + ": errore rete (" + String(error && error.message ? error.message : error).slice(0, 80) + ")"); return probe(videoId, baseHeaders, index + 1, report, finish); }
     var json = null;
     try { json = JSON.parse(typeof data === "string" ? data : String(data)); } catch (e) { json = null; }
     if (!json) { report.push(c.name + ": risposta non JSON (" + (response && response.status) + ")"); return probe(videoId, baseHeaders, index + 1, report, finish); }
