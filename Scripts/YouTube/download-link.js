@@ -116,7 +116,7 @@ function send(method, options, callback) {
 // Control request to a host outside the MITM list, to tell a general network failure of the
 // script runtime from a failure specific to the YouTube host.
 function control(report, errors, finish) {
-  send("get", { url: "https://www.gstatic.com/generate_204", timeout: 5 }, function (error, response, data, via) {
+  send("get", { url: "https://www.gstatic.com/generate_204", timeout: 5000 }, function (error, response, data, via) {
     if (error) errors.push("gstatic: " + errorText(error));
     report.push("controllo gstatic: " + (error ? "errore" : "ok " + (response && response.status) + (via ? " via " + via : "")));
     finish(null, report, errors);
@@ -136,7 +136,7 @@ function probe(videoId, baseHeaders, index, report, errors, finish) {
   send("post", {
     url: "https://youtubei.googleapis.com/youtubei/v1/player?prettyPrint=false",
     headers: headers,
-    timeout: 8,
+    timeout: 8000,
     body: JSON.stringify({ context: { client: client }, videoId: videoId, contentCheckOk: true, racyCheckOk: true })
   }, function (error, response, data, via) {
     if (error) { errors.push(c.name + ": " + errorText(error)); report.push(c.name + ": errore rete"); return probe(videoId, baseHeaders, index + 1, report, errors, finish); }
