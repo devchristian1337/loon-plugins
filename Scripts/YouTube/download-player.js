@@ -2,20 +2,27 @@
 // been rewritten into the native download command, the app asks the player endpoint for the
 // video with the offline flag set (field 8 = 1): for accounts without Premium the server
 // answers UNPLAYABLE and the app reports that the video was not downloaded. This script runs
-// on that request and turns it into an ordinary playback request from the Oculus client
-// (ANDROID_VR), the one still answered with direct media URLs: the offline flag and the
-// empty params are dropped, the client identity is replaced, the app's OAuth token (valid for
-// the iOS client only) is removed and the user agent matches the client. The app then
-// receives a playable answer with downloadable formats. Every other player request gets
-// the same ad-related cleanup that request.min.js applies, since only one request script
-// runs per request.
+// on that request, drops the offline flag and the empty params so the server answers as for
+// ordinary playback, and optionally sends the request as another client:
+//   IOS         the app's own client and token: SABR plus HLS manifest, no direct URLs.
+//   ANDROID_VR  Oculus client, no token: muxed 360p MP4 plus separate tracks with direct URLs.
+//   ANDROID     Android phone client, no token: separate tracks with direct URLs, all qualities.
+// Every other player request gets the same ad-related cleanup that request.min.js applies,
+// since only one request script runs per request.
 
-var VERSION = "v1";
+var VERSION = "v2";
 
-var VR = {
-  deviceMake: "Oculus", deviceModel: "Quest 3", clientName: 28, clientVersion: "1.65.10",
-  osName: "Android", osVersion: "12L", androidSdkVersion: 32,
-  userAgent: "com.google.android.apps.youtube.vr.oculus/1.65.10 (Linux; U; Android 12L; eureka-user Build/SQ3A.220605.009.A1) gzip"
+var CLIENTS = {
+  ANDROID_VR: {
+    deviceMake: "Oculus", deviceModel: "Quest 3", clientName: 28, clientVersion: "1.65.10",
+    osName: "Android", osVersion: "12L", androidSdkVersion: 32,
+    userAgent: "com.google.android.apps.youtube.vr.oculus/1.65.10 (Linux; U; Android 12L; eureka-user Build/SQ3A.220605.009.A1) gzip"
+  },
+  ANDROID: {
+    deviceMake: "Google", deviceModel: "Pixel 7", clientName: 3, clientVersion: "20.10.38",
+    osName: "Android", osVersion: "13", androidSdkVersion: 33,
+    userAgent: "com.google.android.youtube/20.10.38 (Linux; U; Android 13; Pixel 7) gzip"
+  }
 };
 
 // Field numbers observed in the app's own traffic.
@@ -92,29 +99,31 @@ function setField(fields, no, raw) {
 
 function dropField(fields, no) { return fields.filter(function (f) { return f.no !== no; }); }
 
-// Rewrites the client message inside the request context into the Oculus client identity.
-function vrClient(clientData) {
+// Rewrites the client message inside the request context into another client identity.
+function spoofClient(clientData, c) {
   var cf = parseFields(clientData);
-  cf = setField(cf, F.clientDeviceMake, encodeLenField(F.clientDeviceMake, encodeString(VR.deviceMake)));
-  cf = setField(cf, F.clientDeviceModel, encodeLenField(F.clientDeviceModel, encodeString(VR.deviceModel)));
-  cf = setField(cf, F.clientName, encodeVarintField(F.clientName, VR.clientName));
-  cf = setField(cf, F.clientVersion, encodeLenField(F.clientVersion, encodeString(VR.clientVersion)));
-  cf = setField(cf, F.clientOsName, encodeLenField(F.clientOsName, encodeString(VR.osName)));
-  cf = setField(cf, F.clientOsVersion, encodeLenField(F.clientOsVersion, encodeString(VR.osVersion)));
-  cf = setField(cf, F.clientSdk, encodeVarintField(F.clientSdk, VR.androidSdkVersion));
+  cf = setField(cf, F.clientDeviceMake, encodeLenField(F.clientDeviceMake, encodeString(c.deviceMake)));
+  cf = setField(cf, F.clientDeviceModel, encodeLenField(F.clientDeviceModel, encodeString(c.deviceModel)));
+  cf = setField(cf, F.clientName, encodeVarintField(F.clientName, c.clientName));
+  cf = setField(cf, F.clientVersion, encodeLenField(F.clientVersion, encodeString(c.clientVersion)));
+  cf = setField(cf, F.clientOsName, encodeLenField(F.clientOsName, encodeString(c.osName)));
+  cf = setField(cf, F.clientOsVersion, encodeLenField(F.clientOsVersion, encodeString(c.osVersion)));
+  cf = setField(cf, F.clientSdk, encodeVarintField(F.clientSdk, c.androidSdkVersion));
   return build(cf);
 }
 
-// Offline player request -> ordinary playback request from the Oculus client. Returns null
-// when the request is not the offline one.
-function rewriteOfflinePlayer(body) {
+// Offline player request -> ordinary playback request, from the app's own client or the
+// selected one. Returns null when the request is not the offline one.
+function rewriteOfflinePlayer(body, spoof) {
   var top = parseFields(body);
   var offline = single(top, F.offline, WIRE_VARINT), context = single(top, F.context, WIRE_LEN);
   if (!offline || offline.value !== 1 || !context) return null;
-  var ctx = parseFields(context.data), client = single(ctx, F.client, WIRE_LEN);
-  if (!client) return null;
-  ctx = setField(ctx, F.client, encodeLenField(F.client, vrClient(client.data)));
-  top = setField(top, F.context, encodeLenField(F.context, build(ctx)));
+  if (spoof) {
+    var ctx = parseFields(context.data), client = single(ctx, F.client, WIRE_LEN);
+    if (!client) return null;
+    ctx = setField(ctx, F.client, encodeLenField(F.client, spoofClient(client.data, spoof)));
+    top = setField(top, F.context, encodeLenField(F.context, build(ctx)));
+  }
   top = dropField(top, F.offline);
   var params = single(top, F.params, WIRE_LEN);
   if (params && !params.data.length) top = dropField(top, F.params);
@@ -171,34 +180,44 @@ function toBytes(body) {
   return null;
 }
 
-// Loon passes argument=[{native_download},{playback_region}] as an object keyed by argument name.
+function selectedClient(name) {
+  var n = String(name || "").trim().toUpperCase();
+  return CLIENTS[n] ? n : "IOS";
+}
+
+// Loon passes argument=[{native_download},{native_download_client},{playback_region}] as an
+// object keyed by argument name.
 function args() {
-  var a = typeof $argument === "undefined" ? null : $argument, out = { enabled: false, region: "" };
+  var a = typeof $argument === "undefined" ? null : $argument, out = { enabled: false, client: "IOS", region: "" };
   if (a && typeof a === "object" && !Array.isArray(a)) {
     out.enabled = a.native_download === true || String(a.native_download).trim().toLowerCase() === "true";
+    out.client = selectedClient(a.native_download_client);
     out.region = selectedRegion(a.playback_region);
   } else if (Array.isArray(a)) {
     out.enabled = a[0] === true || String(a[0]).trim().toLowerCase() === "true";
-    out.region = selectedRegion(a[1]);
+    out.client = selectedClient(a[1]);
+    out.region = selectedRegion(a[2]);
   } else if (a !== null && a !== undefined) {
     var s = String(a).trim().replace(/^\[|\]$/g, "").split(",");
     var first = s[0].trim().toLowerCase();
     if (first.indexOf("=") >= 0) first = first.split("=")[1].trim();
     out.enabled = first === "true" || first === "1";
-    out.region = selectedRegion(s[1] ? s[1].trim() : "");
+    out.client = selectedClient(s[1] ? s[1].trim() : "");
+    out.region = selectedRegion(s[2] ? s[2].trim() : "");
   }
   return out;
 }
 
-// Removes the app's OAuth token and sets the Oculus user agent, keeping every other header.
-function vrHeaders(headers) {
+// Removes the app's OAuth token (valid for the iOS client only) and sets the user agent of
+// the selected client, keeping every other header.
+function spoofHeaders(headers, c) {
   var out = {}, keys = Object.keys(headers || {}), i;
   for (i = 0; i < keys.length; i++) {
     var k = keys[i].toLowerCase();
     if (k === "authorization" || k === "user-agent" || k === "content-length") continue;
     out[keys[i]] = headers[keys[i]];
   }
-  out["User-Agent"] = VR.userAgent;
+  out["User-Agent"] = c.userAgent;
   return out;
 }
 
@@ -208,10 +227,12 @@ try {
   if (!options.enabled || !body || !body.length) {
     $done({});
   } else {
-    var rewritten = rewriteOfflinePlayer(body);
+    var spoof = CLIENTS[options.client] || null;
+    var rewritten = rewriteOfflinePlayer(body, spoof);
     if (rewritten) {
-      console.log("YouTube download player " + VERSION + ": offline player request sent as ANDROID_VR playback");
-      $done({ headers: vrHeaders($request.headers), body: rewritten });
+      console.log("YouTube download player " + VERSION + ": offline player request sent as " + options.client + " playback");
+      if (spoof) $done({ headers: spoofHeaders($request.headers, spoof), body: rewritten });
+      else $done({ body: rewritten });
     } else {
       var cleaned = cleanPlayer(body, options.region);
       if (cleaned) $done({ body: cleaned });
