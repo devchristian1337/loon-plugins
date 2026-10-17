@@ -7,6 +7,13 @@
 // an audio track has a URL, that is offered. The request itself is passed through unchanged.
 // When no client returns a usable URL, the notification reports what each client answered.
 
+// Shown in the notifications so the running script version can be told from a cached one.
+var VERSION = "v4";
+
+// Per-request timeout in milliseconds (Loon reads $httpClient timeouts in ms). Kept short so the
+// whole probe (4 clients, one retry each, plus the control request) stays within the rule timeout.
+var REQUEST_TIMEOUT = 4000, CONTROL_TIMEOUT = 3000;
+
 var CLIENTS = [
   { name: "ANDROID_VR", version: "1.62.27", ua: "com.google.android.apps.youtube.vr.oculus/1.62.27 (Linux; U; Android 12L; eureka-user Build/SQ3A.220605.009.A1) gzip", extra: { androidSdkVersion: 32 } },
   { name: "TVHTML5", version: "7.20250312.16.00", ua: "Mozilla/5.0 (ChromiumStylePlatform) Cobalt/Version", extra: {} },
@@ -116,7 +123,7 @@ function send(method, options, callback) {
 // Control request to a host outside the MITM list, to tell a general network failure of the
 // script runtime from a failure specific to the YouTube host.
 function control(report, errors, finish) {
-  send("get", { url: "https://www.gstatic.com/generate_204", timeout: 5000 }, function (error, response, data, via) {
+  send("get", { url: "https://www.gstatic.com/generate_204", timeout: CONTROL_TIMEOUT }, function (error, response, data, via) {
     if (error) errors.push("gstatic: " + errorText(error));
     report.push("controllo gstatic: " + (error ? "errore" : "ok " + (response && response.status) + (via ? " via " + via : "")));
     finish(null, report, errors);
@@ -136,7 +143,7 @@ function probe(videoId, baseHeaders, index, report, errors, finish) {
   send("post", {
     url: "https://youtubei.googleapis.com/youtubei/v1/player?prettyPrint=false",
     headers: headers,
-    timeout: 8000,
+    timeout: REQUEST_TIMEOUT,
     body: JSON.stringify({ context: { client: client }, videoId: videoId, contentCheckOk: true, racyCheckOk: true })
   }, function (error, response, data, via) {
     if (error) { errors.push(c.name + ": " + errorText(error)); report.push(c.name + ": errore rete"); return probe(videoId, baseHeaders, index + 1, report, errors, finish); }
@@ -165,13 +172,13 @@ try {
     probe(videoId, $request.headers || {}, 0, [], [], function (found, report, errors) {
       try {
         if (found) {
-          $notification.post("YouTube download", found.label + " via " + found.client, "Tocca per aprire il file in Safari e salvarlo", { openUrl: found.url, "open-url": found.url });
+          $notification.post("YouTube download " + VERSION, found.label + " via " + found.client, "Tocca per aprire il file in Safari e salvarlo", { openUrl: found.url, "open-url": found.url });
           console.log("YouTube download link: " + found.label + " via " + found.client);
           remember("OK " + found.label + " via " + found.client + " | " + report.join(" | "));
         } else {
-          $notification.post("YouTube download", "Nessun URL diretto per " + videoId, report.join(" | "));
+          $notification.post("YouTube download " + VERSION, "Nessun URL diretto per " + videoId, report.join(" | "));
           // The first error in full, in its own notification, so nothing is lost to truncation.
-          if (errors.length) $notification.post("YouTube download: errore", errors[0].split(": ")[0], errors[0].slice(errors[0].indexOf(": ") + 2, 600));
+          if (errors.length) $notification.post("YouTube download " + VERSION + ": errore", errors[0].split(": ")[0], errors[0].slice(errors[0].indexOf(": ") + 2, 600));
           console.log("YouTube download link: none. " + report.join(" | ") + " || " + errors.join(" || "));
           remember("NONE " + report.join(" | ") + " || " + errors.join(" || "));
         }
