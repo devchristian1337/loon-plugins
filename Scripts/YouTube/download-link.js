@@ -93,17 +93,38 @@ function describe(client, status, reason, streamingData) {
   return client + ": " + detail;
 }
 
-// Control request to a host outside the MITM list, to tell a general network failure of the
-// script runtime from a failure specific to the YouTube host.
-function control(report, finish) {
-  $httpClient.get({ url: "https://www.gstatic.com/generate_204", timeout: 5 }, function (error, response) {
-    report.push("controllo gstatic: " + (error ? "errore (" + String(error && error.message ? error.message : error).slice(0, 60) + ")" : "ok " + (response && response.status)));
-    finish(null, report);
+function errorText(error) {
+  if (!error) return "";
+  if (typeof error === "string") return error;
+  try { return error.message || JSON.stringify(error); } catch (e) { return String(error); }
+}
+
+// Sends a request; when it fails, retries once forcing the direct outbound (node DIRECT), in
+// case the failure comes from the policy the profile applies to script traffic.
+function send(method, options, callback) {
+  $httpClient[method](options, function (error, response, data) {
+    if (!error || options.node) return callback(error, response, data, options.node ? "DIRECT" : "");
+    var retry = {}, keys = Object.keys(options), i;
+    for (i = 0; i < keys.length; i++) retry[keys[i]] = options[keys[i]];
+    retry.node = "DIRECT";
+    $httpClient[method](retry, function (error2, response2, data2) {
+      callback(error2, response2, data2, error2 ? "" : "DIRECT");
+    });
   });
 }
 
-function probe(videoId, baseHeaders, index, report, finish) {
-  if (index >= CLIENTS.length) return control(report, finish);
+// Control request to a host outside the MITM list, to tell a general network failure of the
+// script runtime from a failure specific to the YouTube host.
+function control(report, errors, finish) {
+  send("get", { url: "https://www.gstatic.com/generate_204", timeout: 5 }, function (error, response, data, via) {
+    if (error) errors.push("gstatic: " + errorText(error));
+    report.push("controllo gstatic: " + (error ? "errore" : "ok " + (response && response.status) + (via ? " via " + via : "")));
+    finish(null, report, errors);
+  });
+}
+
+function probe(videoId, baseHeaders, index, report, errors, finish) {
+  if (index >= CLIENTS.length) return control(report, errors, finish);
   var c = CLIENTS[index];
   var client = { clientName: c.name, clientVersion: c.version, hl: "it", gl: "IT" };
   var keys = Object.keys(c.extra), i;
@@ -112,22 +133,27 @@ function probe(videoId, baseHeaders, index, report, finish) {
   var auth = header(baseHeaders, "authorization"), visitor = header(baseHeaders, "x-goog-visitor-id");
   if (auth) headers["Authorization"] = auth;
   if (visitor) headers["X-Goog-Visitor-Id"] = visitor;
-  $httpClient.post({
+  send("post", {
     url: "https://youtubei.googleapis.com/youtubei/v1/player?prettyPrint=false",
     headers: headers,
     timeout: 8,
     body: JSON.stringify({ context: { client: client }, videoId: videoId, contentCheckOk: true, racyCheckOk: true })
-  }, function (error, response, data) {
-    if (error) { report.push(c.name + ": errore rete (" + String(error && error.message ? error.message : error).slice(0, 80) + ")"); return probe(videoId, baseHeaders, index + 1, report, finish); }
+  }, function (error, response, data, via) {
+    if (error) { errors.push(c.name + ": " + errorText(error)); report.push(c.name + ": errore rete"); return probe(videoId, baseHeaders, index + 1, report, errors, finish); }
+    if (via) report.push(c.name + " raggiunto via " + via);
     var json = null;
     try { json = JSON.parse(typeof data === "string" ? data : String(data)); } catch (e) { json = null; }
-    if (!json) { report.push(c.name + ": risposta non JSON (" + (response && response.status) + ")"); return probe(videoId, baseHeaders, index + 1, report, finish); }
+    if (!json) { report.push(c.name + ": risposta non JSON (" + (response && response.status) + ")"); return probe(videoId, baseHeaders, index + 1, report, errors, finish); }
     var ps = json.playabilityStatus || {};
     var pick = ps.status === "OK" ? pickFormat(json.streamingData) : null;
-    if (pick) return finish({ client: c.name, url: pick.url, label: pick.label }, report);
+    if (pick) return finish({ client: c.name, url: pick.url, label: pick.label }, report, errors);
     report.push(describe(c.name, ps.status, ps.reason, json.streamingData));
-    probe(videoId, baseHeaders, index + 1, report, finish);
+    probe(videoId, baseHeaders, index + 1, report, errors, finish);
   });
+}
+
+function remember(text) {
+  try { if (typeof $persistentStore !== "undefined") $persistentStore.write(text, "youtube.download.link.last"); } catch (e) {}
 }
 
 try {
@@ -136,14 +162,18 @@ try {
   if (!videoId) {
     $done({});
   } else {
-    probe(videoId, $request.headers || {}, 0, [], function (found, report) {
+    probe(videoId, $request.headers || {}, 0, [], [], function (found, report, errors) {
       try {
         if (found) {
           $notification.post("YouTube download", found.label + " via " + found.client, "Tocca per aprire il file in Safari e salvarlo", { openUrl: found.url, "open-url": found.url });
           console.log("YouTube download link: " + found.label + " via " + found.client);
+          remember("OK " + found.label + " via " + found.client + " | " + report.join(" | "));
         } else {
           $notification.post("YouTube download", "Nessun URL diretto per " + videoId, report.join(" | "));
-          console.log("YouTube download link: none. " + report.join(" | "));
+          // The first error in full, in its own notification, so nothing is lost to truncation.
+          if (errors.length) $notification.post("YouTube download: errore", errors[0].split(": ")[0], errors[0].slice(errors[0].indexOf(": ") + 2, 600));
+          console.log("YouTube download link: none. " + report.join(" | ") + " || " + errors.join(" || "));
+          remember("NONE " + report.join(" | ") + " || " + errors.join(" || "));
         }
       } catch (e) { console.log("YouTube download link: notification failed (" + e + ")"); }
       $done({});
