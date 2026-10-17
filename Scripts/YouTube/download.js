@@ -8,6 +8,7 @@
 // The media itself is still served by YouTube, so the download may fail or stay pending
 // when the server refuses. Anything unexpected is passed through unchanged.
 
+var VERSION = "v2";
 var WIRE_VARINT = 0, WIRE_LEN = 2;
 
 function readVarint(buf, pos) {
@@ -116,7 +117,8 @@ function rewriteDownloadAction(body) {
     encodeVarintField(F.ovAction, 1),
     encodeLenField(F.ovOfflineability, encodeLenField(F.offlineabilityRenderer, concat(rendererParts))),
     encodeLenField(F.ovActionParams, concat([
-      encodeVarintField(F.paramsFormatType, formatType ? formatType.value : 2),
+      // The gate may carry format type 0 (unknown): the native command names an explicit one.
+      encodeVarintField(F.paramsFormatType, formatType && formatType.value ? formatType.value : 2),
       encodeVarintField(F.paramsSettingsAction, 4)
     ]))
   ]);
@@ -163,7 +165,7 @@ try {
   } else if (typeof $response !== "undefined" && $response) {
     var rb = toBytes($response.body);
     if (rb && /\/youtubei\/v1\/offline\/get_download_action/.test(url)) out = rewriteDownloadAction(rb);
-    if (out) { console.log("YouTube download: gated download rewritten to native ACTION_ADD"); $done({ body: out }); }
+    if (out) { console.log("YouTube download " + VERSION + ": gated download rewritten to native ACTION_ADD"); $done({ body: out }); }
     else { console.log("YouTube download: response left unchanged"); $done({}); }
   } else {
     var qb = toBytes($request.body);
