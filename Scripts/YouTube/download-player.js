@@ -3,14 +3,21 @@
 // video with the offline flag set (field 8 = 1): for accounts without Premium the server
 // answers UNPLAYABLE and the app reports that the video was not downloaded. This script runs
 // on that request, drops the offline flag and the empty params so the server answers as for
-// ordinary playback, and optionally sends the request as another client:
+// ordinary playback, and handles the request as selected:
+//   MERGED      the script itself asks the server twice, as the app's own client and as the
+//               Android client, and answers the app with the iOS message whose formats carry
+//               the direct media URLs of the Android one (SABR and HLS entries removed), the
+//               shape of an offline answer: iOS layout plus downloadable URLs.
 //   IOS         the app's own client and token: SABR plus HLS manifest, no direct URLs.
 //   ANDROID_VR  Oculus client, no token: muxed 360p MP4 plus separate tracks with direct URLs.
 //   ANDROID     Android phone client, no token: separate tracks with direct URLs, all qualities.
 // Every other player request gets the same ad-related cleanup that request.min.js applies,
 // since only one request script runs per request.
 
-var VERSION = "v2";
+var VERSION = "v3";
+
+// Timeout of each request the script sends itself, in milliseconds (Loon reads them in ms).
+var REQUEST_TIMEOUT = 8000;
 
 var CLIENTS = {
   ANDROID_VR: {
@@ -29,7 +36,11 @@ var CLIENTS = {
 var F = {
   context: 1, client: 1, playbackContext: 4, offline: 8, params: 12,
   clientGl: 2, clientDeviceMake: 12, clientDeviceModel: 13, clientName: 16, clientVersion: 17, clientOsName: 18, clientOsVersion: 19, clientSdk: 64,
-  contextAdSignals: 9, contentPlayback: 1, playbackAdParams: 12, playbackForceAdParams: 25, playbackInlineNoAd: 50
+  contextAdSignals: 9, contentPlayback: 1, playbackAdParams: 12, playbackForceAdParams: 25, playbackInlineNoAd: 50,
+  // Player response: playabilityStatus (status 0 = OK) and streamingData with its formats.
+  playability: 2, playabilityStatus: 1, streamingData: 4,
+  sdFormats: 2, sdAdaptive: 3, sdHls: 5, sdSabr: 15,
+  fmtItag: 1, fmtUrl: 2, fmtLastModified: 11
 };
 
 var WIRE_VARINT = 0, WIRE_LEN = 2;
@@ -182,7 +193,124 @@ function toBytes(body) {
 
 function selectedClient(name) {
   var n = String(name || "").trim().toUpperCase();
-  return CLIENTS[n] ? n : "IOS";
+  return CLIENTS[n] || n === "MERGED" ? n : "IOS";
+}
+
+// --- MERGED mode -------------------------------------------------------------------------
+
+function insertAfter(fields, no, raw) {
+  var out = [], placed = false, i;
+  for (i = 0; i < fields.length; i++) {
+    out.push(fields[i]);
+    if (!placed && fields[i].no === no) { out.push({ no: raw.no, raw: raw.raw }); placed = true; }
+  }
+  if (!placed) out.unshift({ no: raw.no, raw: raw.raw });
+  return out;
+}
+
+function playable(top) {
+  var ps = single(top, F.playability, WIRE_LEN);
+  if (!ps) return false;
+  var st = single(parseFields(ps.data), F.playabilityStatus, WIRE_VARINT);
+  return !st || st.value === 0;
+}
+
+// Returns the iOS player message with the direct URLs of the Android one: each adaptive
+// track is matched by itag and last-modified stamp (itag alone as fallback), the Android
+// muxed formats are added, SABR and HLS entries are removed. Null when nothing could be merged.
+function mergeResponses(iosBody, androidBody) {
+  var iosTop = parseFields(iosBody), androidTop = parseFields(androidBody);
+  if (!playable(iosTop) || !playable(androidTop)) return null;
+  var iosSd = single(iosTop, F.streamingData, WIRE_LEN), androidSd = single(androidTop, F.streamingData, WIRE_LEN);
+  if (!iosSd || !androidSd) return null;
+  var byKey = {}, byItag = {}, muxed = [], i;
+  var af = parseFields(androidSd.data);
+  for (i = 0; i < af.length; i++) {
+    if (af[i].wire !== WIRE_LEN || (af[i].no !== F.sdFormats && af[i].no !== F.sdAdaptive)) continue;
+    var ff = parseFields(af[i].data), itag = single(ff, F.fmtItag, WIRE_VARINT), url = single(ff, F.fmtUrl, WIRE_LEN), stamp = single(ff, F.fmtLastModified, WIRE_VARINT);
+    if (!itag || !url || !url.data.length) continue;
+    if (af[i].no === F.sdFormats) { muxed.push(af[i]); continue; }
+    if (stamp) byKey[itag.value + "|" + stamp.value] = url;
+    if (!byItag[itag.value]) byItag[itag.value] = url;
+  }
+  var out = [], merged = 0, firstAdaptive = -1;
+  var sf = parseFields(iosSd.data);
+  for (i = 0; i < sf.length; i++) {
+    var f = sf[i];
+    if (f.no === F.sdHls || f.no === F.sdSabr) continue;
+    if (f.no === F.sdAdaptive && f.wire === WIRE_LEN) {
+      if (firstAdaptive < 0) firstAdaptive = out.length;
+      var ff2 = parseFields(f.data), itag2 = single(ff2, F.fmtItag, WIRE_VARINT), url2 = single(ff2, F.fmtUrl, WIRE_LEN), stamp2 = single(ff2, F.fmtLastModified, WIRE_VARINT);
+      if (itag2 && (!url2 || !url2.data.length)) {
+        var found = (stamp2 && byKey[itag2.value + "|" + stamp2.value]) || byItag[itag2.value];
+        if (found) {
+          ff2 = insertAfter(ff2.filter(function (x) { return x.no !== F.fmtUrl; }), F.fmtItag, found);
+          out.push({ no: f.no, raw: encodeLenField(F.sdAdaptive, build(ff2)) });
+          merged++;
+          continue;
+        }
+      }
+    }
+    out.push(f);
+  }
+  if (!merged && !muxed.length) return null;
+  if (muxed.length) {
+    var at = firstAdaptive < 0 ? out.length : firstAdaptive;
+    out = out.slice(0, at).concat(muxed, out.slice(at));
+  }
+  console.log("YouTube download player " + VERSION + ": merged " + merged + " adaptive URLs and " + muxed.length + " muxed formats");
+  return build(iosTop.map(function (x) { return x === iosSd ? { no: F.streamingData, raw: encodeLenField(F.streamingData, build(out)) } : x; }));
+}
+
+function cleanHeaders(headers) {
+  var out = {}, keys = Object.keys(headers || {}), i;
+  for (i = 0; i < keys.length; i++) {
+    var k = keys[i].toLowerCase();
+    if (k === "content-length" || k === "content-encoding" || k === "accept-encoding" || k.charAt(0) === ":") continue;
+    out[keys[i]] = headers[keys[i]];
+  }
+  out["Accept-Encoding"] = "identity";
+  return out;
+}
+
+function fetchPlayer(url, headers, body, callback) {
+  $httpClient.post({ url: url, headers: headers, body: body, timeout: REQUEST_TIMEOUT, "binary-mode": true }, function (error, response, data) {
+    if (error) return callback("request failed: " + (error.message || error));
+    if (!response || response.status !== 200) return callback("status " + (response && response.status));
+    var bytes = toBytes(data);
+    if (!bytes || !bytes.length) return callback("non-binary answer");
+    callback(null, bytes);
+  });
+}
+
+// Asks the server as the app's own client and as the Android client, merges the answers and
+// returns them to the app as the response; falls back to the plain iOS request on any failure.
+function mergedPlayer(body, fallbackBody) {
+  var url = String($request.url || ""), headers = $request.headers || {};
+  var iosBody = fallbackBody, androidBody = rewriteOfflinePlayer(body, CLIENTS.ANDROID);
+  var results = {}, pending = 2, failed = null;
+  function finish() {
+    if (failed) {
+      console.log("YouTube download player " + VERSION + ": merge skipped (" + failed + "), plain iOS request sent");
+      return $done({ body: fallbackBody });
+    }
+    var merged = null;
+    try { merged = mergeResponses(results.ios, results.android); } catch (e) { merged = null; failed = String(e); }
+    if (!merged) {
+      console.log("YouTube download player " + VERSION + ": nothing merged (" + (failed || "no urls") + "), plain iOS request sent");
+      return $done({ body: fallbackBody });
+    }
+    $done({ response: { status: 200, headers: { "Content-Type": "application/x-protobuf" }, body: merged } });
+  }
+  function done(name) {
+    return function (error, bytes) {
+      if (error) failed = failed || (name + " " + error);
+      else results[name] = bytes;
+      if (--pending === 0) finish();
+    };
+  }
+  fetchPlayer(url, cleanHeaders(headers), iosBody, done("ios"));
+  fetchPlayer(url, cleanHeaders(spoofHeaders(headers, CLIENTS.ANDROID)), androidBody, done("android"));
 }
 
 // Loon passes argument=[{native_download},{native_download_client},{playback_region}] as an
@@ -229,7 +357,10 @@ try {
   } else {
     var spoof = CLIENTS[options.client] || null;
     var rewritten = rewriteOfflinePlayer(body, spoof);
-    if (rewritten) {
+    if (rewritten && options.client === "MERGED") {
+      console.log("YouTube download player " + VERSION + ": offline player request answered with the merged iOS and Android messages");
+      mergedPlayer(body, rewritten);
+    } else if (rewritten) {
       console.log("YouTube download player " + VERSION + ": offline player request sent as " + options.client + " playback");
       if (spoof) $done({ headers: spoofHeaders($request.headers, spoof), body: rewritten });
       else $done({ body: rewritten });
