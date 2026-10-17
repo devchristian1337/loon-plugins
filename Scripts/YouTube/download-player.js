@@ -14,7 +14,7 @@
 // Every other player request gets the same ad-related cleanup that request.min.js applies,
 // since only one request script runs per request.
 
-var VERSION = "v3";
+var VERSION = "v4";
 
 // Timeout of each request the script sends itself, in milliseconds (Loon reads them in ms).
 var REQUEST_TIMEOUT = 8000;
@@ -198,6 +198,8 @@ function selectedClient(name) {
 
 // --- MERGED mode -------------------------------------------------------------------------
 
+var mergeSummary = "";
+
 function insertAfter(fields, no, raw) {
   var out = [], placed = false, i;
   for (i = 0; i < fields.length; i++) {
@@ -258,6 +260,7 @@ function mergeResponses(iosBody, androidBody) {
     var at = firstAdaptive < 0 ? out.length : firstAdaptive;
     out = out.slice(0, at).concat(muxed, out.slice(at));
   }
+  mergeSummary = merged + " tracce con URL su " + sf.filter(function (x) { return x.no === F.sdAdaptive; }).length + ", " + muxed.length + " formati completi";
   console.log("YouTube download player " + VERSION + ": merged " + merged + " adaptive URLs and " + muxed.length + " muxed formats");
   return build(iosTop.map(function (x) { return x === iosSd ? { no: F.streamingData, raw: encodeLenField(F.streamingData, build(out)) } : x; }));
 }
@@ -289,17 +292,24 @@ function mergedPlayer(body, fallbackBody) {
   var url = String($request.url || ""), headers = $request.headers || {};
   var iosBody = fallbackBody, androidBody = rewriteOfflinePlayer(body, CLIENTS.ANDROID);
   var results = {}, pending = 2, failed = null;
+  // The outcome is also posted as a notification, so it can be read without the script log.
+  function notify(subtitle, text) {
+    try { $notification.post("YouTube download player " + VERSION, subtitle, text); } catch (e) {}
+  }
   function finish() {
     if (failed) {
       console.log("YouTube download player " + VERSION + ": merge skipped (" + failed + "), plain iOS request sent");
+      notify("Fusione saltata, inviata richiesta iOS", String(failed).slice(0, 300));
       return $done({ body: fallbackBody });
     }
-    var merged = null;
-    try { merged = mergeResponses(results.ios, results.android); } catch (e) { merged = null; failed = String(e); }
+    var merged = null, summary = "";
+    try { merged = mergeResponses(results.ios, results.android); summary = mergeSummary; } catch (e) { merged = null; failed = String(e); }
     if (!merged) {
       console.log("YouTube download player " + VERSION + ": nothing merged (" + (failed || "no urls") + "), plain iOS request sent");
+      notify("Nessun URL unito, inviata richiesta iOS", String(failed || "no urls").slice(0, 300));
       return $done({ body: fallbackBody });
     }
+    notify("Risposta unita consegnata all'app", summary + ", " + merged.length + " byte");
     $done({ response: { status: 200, headers: { "Content-Type": "application/x-protobuf" }, body: merged } });
   }
   function done(name) {
