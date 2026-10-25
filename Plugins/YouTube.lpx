@@ -6,7 +6,7 @@
 #!loon_version = 3.5.1(983)
 #!homepage = https://github.com/devchristian1337/loon-plugins/blob/main/README.md
 #!icon = https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/App-Icons/youtube.png
-#!date = 2026-10-17
+#!date = 2026-10-25
 
 [Argument]
 background_playback = switch,false,tag=Background playback,desc=Keeps audio playing for regular videos after switching app or locking the screen. Live streams and restricted content are still decided by YouTube
@@ -15,7 +15,8 @@ translation_enabled = switch,false,tag=Subtitle translation,desc=Translates exis
 translation_target = select,"zh-CN","en-US",tag=Subtitle target language,desc=Only converts existing subtitle tracks (Simplified Chinese zh-CN or US English en-US). Videos without subtitles cannot be translated. Audio track, title and description are unchanged
 hide_home_shorts = switch,false,tag=Hide Home Shorts,desc=Removes the Shorts shelf from the Home feed. The bottom Shorts tab and other pages are kept
 blocked_channels = input,"",tag=Blocked channels,desc=Channel IDs, @handles or full channel names separated by spaces. Prefer channel IDs, use handle or ID for names containing spaces. Leave empty to disable. Only hides videos whose owner can be identified
-blocked_channels_url = input,"",tag=Remote blocked channels URL,desc=Public HTTPS plain-text direct link (e.g. GitHub Raw). Local cache refreshes hourly, or run the update script. Merged with the manual list. Leave empty to disable
+blocked_channels_url = input,"",tag=Remote blocked channels URL,desc=Public HTTPS plain-text direct link (e.g. GitHub Raw). Local cache refreshes hourly when the scheduled update is on, or run the update script. Merged with the manual list. Leave empty to disable
+blocked_channels_update = switch,false,tag=Blocked channels scheduled update,desc=Refreshes the remote blocked channels list every hour. Only needed with a remote list URL: when off, the hourly task does not run and the list can still be refreshed with the update script
 log_enabled = switch,false,tag=Logging tool,desc=Starts automatically on the first matched request and notifies the log entry point. When turned off, the next API hit clears the log and stops sampling, download it first if you need it. Full sampling may add delay
 quality_research = switch,false,tag=Quality research sampling,desc=Only active when the logging tool is on. Records recognizable quality and format parameters and reads small media POST requests for comparison. Does not switch quality automatically
 media_capture_mode = select,"headers","full",tag=Media sampling mode,desc=Only active when the logging tool is on, disabled automatically when logging is off. headers records response headers only. full reads the whole response for development and may add delay
@@ -40,8 +41,8 @@ request if ${url} ~= /^https:\/\/[a-z0-9-]+\.googlevideo\.com\/initplayback(?:\?
 
 [Script]
 # Refreshes the channel list cache independently. The feed script only reads the cache and never waits for a remote download.
-# Updated 2026-10-07
-cron "0 * * * *" script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,timeout=10,argument=[{blocked_channels_url}],tag=YouTube scheduled blocked channels update
+# Updated 2026-10-25. Runs only when the scheduled update switch is on, so users without a remote list do not get an hourly task.
+cron "0 * * * *" script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,timeout=10,enable={blocked_channels_update},argument=[{blocked_channels_url}],tag=YouTube scheduled blocked channels update
 generic script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,timeout=10,argument=[{blocked_channels_url}],tag=YouTube update blocked channels,img-url=person.crop.circle.badge.xmark.system
 http-request ^https:\/\/(?:www\.|m\.)?youtube\.com\/api\/timedtext\?[^#]+$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,requires-body=false,timeout=10,enable={translation_enabled},argument=[{translation_enabled},{translation_target}],tag=YouTube subtitle target language
 # Reads videoplayback POST only when logging and quality research are explicitly enabled. Does not hit the blank init video.
