@@ -57,6 +57,7 @@
 - ⏯️ Optional background playback
 - 🌍 Translate existing subtitle tracks to zh-CN or en-US
 - 🙈 Hide the Home Shorts shelf
+- 🧭 Hide the Shorts tab and the Create button from the bottom bar
 - 🚷 Manual or remote channel blocklist
 - 🔍 Built-in logging tool for troubleshooting
 

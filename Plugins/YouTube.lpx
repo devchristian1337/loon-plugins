@@ -6,14 +6,16 @@
 #!loon_version = 3.5.1(983)
 #!homepage = https://github.com/devchristian1337/loon-plugins/blob/main/README.md
 #!icon = https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/App-Icons/youtube.png
-#!date = 2026-10-28
+#!date = 2026-10-31
 
 [Argument]
 background_playback = switch,false,tag=Background playback,desc=Keeps audio playing for regular videos after switching app or locking the screen. Live streams and restricted content are still decided by YouTube
 playback_region = select,"original","CN","HK","TW","US","JP","KR","SG","GB","DE","RU",tag=Playback request region,desc=original keeps the current region. Only changes the client gl parameter, the exit IP is unchanged. Ad-blocking effect still to be verified
 translation_enabled = switch,false,tag=Subtitle translation,desc=Translates existing subtitles into the selected target language. When off, the original subtitle request is kept
 translation_target = select,"zh-CN","en-US",tag=Subtitle target language,desc=Only converts existing subtitle tracks (Simplified Chinese zh-CN or US English en-US). Videos without subtitles cannot be translated. Audio track, title and description are unchanged
-hide_home_shorts = switch,false,tag=Hide Home Shorts,desc=Removes the Shorts shelf from the Home feed. The bottom Shorts tab and other pages are kept
+hide_home_shorts = switch,false,tag=Hide Home Shorts,desc=Removes the Shorts shelf from the Home feed. Other pages are kept, the bottom Shorts tab has its own switch
+hide_shorts_tab = switch,false,tag=Hide Shorts tab,desc=Removes the Shorts button from the bottom bar of the app. Shorts stay reachable from the feed and from channels. The app caches the bar for about an hour, so restart it to see the change
+hide_create_button = switch,false,tag=Hide Create button,desc=Removes the Create (+) button from the bottom bar of the app. Uploads stay possible from other entry points. The app caches the bar for about an hour, so restart it to see the change
 blocked_channels = input,"",tag=Blocked channels,desc=Channel IDs, @handles or full channel names separated by spaces. Prefer channel IDs, use handle or ID for names containing spaces. Leave empty to disable. Only hides videos whose owner can be identified
 blocked_channels_url = input,"",tag=Remote blocked channels URL,desc=Public HTTPS plain-text direct link (e.g. GitHub Raw). Local cache refreshes hourly when the scheduled update is on. To refresh now, with the scheduled update on, run its script manually from the plugin script list. Merged with the manual list. Leave empty to disable
 blocked_channels_update = switch,false,tag=Blocked channels scheduled update,desc=Refreshes the remote blocked channels list every hour. Only needed with a remote list URL: when off, the hourly task is disabled and cannot be run manually either, so the cached list stays as it is
@@ -57,6 +59,8 @@ http-response ^https:\/\/(?:youtubei(?:-att)?\.googleapis\.com|(?:www\.|m\.)?you
 
 http-request ^https:\/\/(?:youtubei(?:-att)?\.googleapis\.com|(?:www\.|m\.|music\.)?youtube\.com)\/youtubei\/v1\/(?:player|get_watch)(?:\?[^#]*)?$|^https:\/\/(?:youtubei(?:-att)?\.googleapis\.com|(?:www\.|m\.|music\.)?youtube\.com)\/youtubei\/v1\/player\/ad_break(?:\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/request.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument=[{log_enabled},{log_level},{capture_budget},{playback_region}],tag=YouTube playback request and ad config handling
 
+# Bottom bar (guide endpoint, iOS app): removes the Shorts tab and the Create button when the switches are on. Always matched so either switch can enable it, the script passes the response through when both are off. Added 2026-10-31.
+http-response ^https:\/\/(?:youtubei(?:-att)?\.googleapis\.com|(?:www\.|m\.)?youtube\.com)\/youtubei\/v1\/guide(?:\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/response.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument=[{log_enabled},{log_level},{capture_budget},{hide_shorts_tab},{hide_create_button}],tag=YouTube bottom bar Shorts tab and Create button
 # Search responses (protobuf, iOS app) are cleaned too: sponsored results and their dividers. The in-feed ad the Home feed loads a few seconds later (deferred update) is removed as well. Updated 2026-10-25.
 http-response ^https:\/\/(?:youtubei(?:-att)?\.googleapis\.com|(?:www\.|m\.|music\.)?youtube\.com)\/youtubei\/v1\/(browse|next|search)(\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/response.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument=[{log_enabled},{log_level},{capture_budget},{hide_home_shorts},{blocked_channels},{blocked_channels_url}],tag=YouTube feed ads and Home Shorts handling
 http-response ^https:\/\/(?:youtubei(?:-att)?\.googleapis\.com|(?:www\.|m\.|music\.)?youtube\.com)\/youtubei\/v1\/(player|get_watch)(\?[^#]*)?$|^https:\/\/(?:youtubei(?:-att)?\.googleapis\.com|(?:www\.|m\.|music\.)?youtube\.com)\/youtubei\/v1\/reel\/reel_watch_sequence(?:\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/YouTube/response.min.js,requires-body=true,binary-body-mode=true,timeout=10,argument=[{log_enabled},{log_level},{capture_budget},{background_playback},{quality_research}],tag=YouTube playback response and background playback
