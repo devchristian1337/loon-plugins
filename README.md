@@ -42,13 +42,14 @@
 
 - 🚫 Blocks the main mobile ad networks (AdMob, Meta Audience Network, AppLovin, Unity Ads, Vungle, InMobi, Mintegral, Pangle and others)
 - 🔒 Rule-based only, no MITM or certificate required
+- ⚠️ Note: Loon applies plugin rules to all traffic, so these ad networks are blocked in every app
 - ✅ Facebook login keeps working
 
 ### Spotify Plugin
 
 - 🚫 Remove playback, Home, Search and scroll advertisements
-- 🧹 Hide the discovery feed on the Now Playing screen and the AI DJ entry
-- ⚙️ Two alternative protobuf patches (local override or remote modification), enable only one
+- 🧹 Optional switches to hide the discovery feed on the Now Playing screen, the membership info and the AI DJ entry
+- ⚙️ Local protobuf override by default, remote modification available as an alternative switch
 - ⚠️ Note: Audio quality cannot be set to "Very High"
 
 ### YouTube Plugin
@@ -56,16 +57,16 @@
 - 🚫 Block ads in the feed, Shorts and player
 - ⏯️ Optional background playback
 - 🌍 Translate existing subtitle tracks to zh-CN or en-US
-- 🙈 Hide the Home Shorts shelf
+- 🙈 Hide the Shorts shelf from the Home feed or from every feed and search results
 - 🧭 Hide the Shorts tab and the Create button from the bottom bar
-- 🚷 Manual or remote channel blocklist
+- 🚷 Manual or remote channel blocklist, with optional hourly refresh of the remote list
 - 🔍 Built-in logging tool for troubleshooting
 
 ### SoundCloud Plugin
 
 - 🔓 Unlock SoundCloud Go+ premium features
 - 🎵 Access to premium-only tracks and content
-- 🧹 Removes the Upgrade tab and the "listen without ads" badge
+- 🧹 Optionally removes the Upgrade tab and the "listen without ads" badge
 
 ### Tinder AdBlock Plugin
 
@@ -76,7 +77,7 @@
 
 ## 📝 Requirements
 
-- iOS device with [Loon](https://apps.apple.com/app/loon/id1373567447) installed (version 3.2.6 or newer)
+- iOS device with [Loon](https://apps.apple.com/app/loon/id1373567447) installed (version 3.2.6 or newer, 3.5.1 or newer for the YouTube and Spotify plugins)
 - QUIC fallback protection enabled in Loon settings
 - MITM enabled with a trusted certificate for Spotify, YouTube, SoundCloud and Tinder
 - Not supported on tvOS devices

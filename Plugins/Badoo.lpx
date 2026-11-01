@@ -1,12 +1,12 @@
 #!name = Badoo AdBlock
-#!desc = Blocks the advertising SDKs used by the Badoo app (banners, interstitials, videos). No MITM required.
+#!desc = Blocks the advertising SDKs used by the Badoo app (banners, interstitials, videos). No MITM required. Note: Loon applies plugin rules to all traffic, so these ad networks (AdMob, AppLovin, Unity Ads and others) are blocked in every app, including rewarded videos in games.
 #!openUrl = https://loon-plugins.vercel.app
 #!author = devchristian1337
 #!tag = Badoo, AdBlock
 #!loon_version = 3.3.4(898)
 #!homepage = https://github.com/devchristian1337/loon-plugins/blob/main/README.md
 #!icon = https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/App-Icons/badoo-adblock.png
-#!date = 2026-10-07
+#!date = 2026-11-01
 
 [Rule]
 # Google AdMob / Ad Manager (main banner network used by Badoo)

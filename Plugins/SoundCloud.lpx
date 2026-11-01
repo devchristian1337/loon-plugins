@@ -1,16 +1,19 @@
 #!name = SoundCloud
-#!desc = Unlocks SoundCloud Go+ features and hides the upgrade tab and badge.
+#!desc = Unlocks SoundCloud Go+ features. Hiding the Upgrade tab and the "listen without ads" badge is optional.
 #!openUrl = https://loon-plugins.vercel.app
 #!author = devchristian1337
 #!tag = SoundCloud, Premium
 #!loon_version = 3.3.4(898)
 #!homepage = https://github.com/devchristian1337/loon-plugins/blob/main/README.md
 #!icon = https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/App-Icons/soundcloud.png
-#!date = 2026-10-08
+#!date = 2026-11-01
+
+[Argument]
+hide_upsells = switch,true,tag=Hide upgrade entry points,desc=Removes the Upgrade tab and the "listen without ads" badge. When off, the Go+ unlock is kept and the entry points stay visible
 
 [Script]
-http-response https://api-mobile.soundcloud.com/configuration/ios script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/SoundCloud/soundcloud.js,requires-body=true,tag=SoundCloud Go+
-http-response https://graph.soundcloud.com/graphql script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/SoundCloud/soundcloud-upsells.js,requires-body=true,tag=SoundCloud Upsells
+http-response https://api-mobile.soundcloud.com/configuration/ios script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/SoundCloud/soundcloud.js,requires-body=true,timeout=10,argument=[{hide_upsells}],tag=SoundCloud Go+
+http-response https://graph.soundcloud.com/graphql script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/SoundCloud/soundcloud-upsells.js,requires-body=true,timeout=10,enable={hide_upsells},tag=SoundCloud Upsells
 
 [Mitm]
 hostname = api-mobile.soundcloud.com, graph.soundcloud.com
