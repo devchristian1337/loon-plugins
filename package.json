@@ -1,0 +1,11 @@
+{
+  "name": "loon-plugins",
+  "private": true,
+  "description": "Loon plugins and scripts. The YouTube scripts are built from src/YouTube with terser.",
+  "scripts": {
+    "build": "node tools/build-youtube.mjs"
+  },
+  "devDependencies": {
+    "terser": "^5.39.0"
+  }
+}

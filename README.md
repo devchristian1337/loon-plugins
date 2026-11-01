@@ -154,6 +154,14 @@ Check back regularly for updates to existing plugins and new additions to the co
   </picture>
 </a>
 
+## 🛠️ Development
+
+The YouTube scripts are built from readable sources:
+
+- `src/YouTube/request.js` and `src/YouTube/response.js` are the sources, with section comments.
+- `Scripts/YouTube/*.min.js` are generated with [terser](https://github.com/terser/terser): run `npm install` once, then `npm run build` from the repository root after every change to the sources.
+- Never edit the minified files by hand: the header of each one carries the SHA-256 of the source it was built from.
+
 ## ⚠️ Disclaimer
 
 These plugins are for personal use only. Use at your own risk. The developer is not responsible for any issues that may arise from using these plugins, including but not limited to account restrictions or app functionality.
