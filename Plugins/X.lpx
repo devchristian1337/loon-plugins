@@ -1,16 +1,23 @@
-#!name = X Probe
-#!desc = Research probe for X (Twitter): inspects the Home timeline GraphQL responses of the web app (x.com in Safari or as a Home Screen web app) and reports the ad markers it finds in the Loon script log and notifications. Never modifies traffic. The native app pins its certificates and cannot be inspected.
+#!name = X AdBlock
+#!desc = Removes the promoted posts and ad carousels from the Home timeline of the X (Twitter) web app, used in Safari or added to the Home Screen. Optional: hide the "Who to follow" and message prompt modules. The native X app pins its certificates and is not supported.
 #!openUrl = https://loon-plugins.vercel.app
 #!author = devchristian1337
-#!tag = X, Research
+#!tag = X, AdBlock
 #!system = iOS,iPadOS,macOS
 #!loon_version = 3.3.4(898)
 #!homepage = https://github.com/devchristian1337/loon-plugins/blob/main/README.md
 #!icon = https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/App-Icons/x.png
 #!date = 2026-11-06
 
+[Argument]
+remove_promoted = switch,true,tag=Remove promoted posts,desc=Removes the entries marked as promoted in the timeline, both single posts and promoted items inside conversation modules. Entries whose id starts with "promoted" are always removed
+remove_ad_carousels = switch,true,tag=Remove ad carousels,desc=Removes the carousel modules of the timeline, the format X uses for multi-card ads
+remove_who_to_follow = switch,false,tag=Hide "Who to follow",desc=Removes the "Who to follow" suggestion modules from the timeline
+remove_message_prompt = switch,false,tag=Hide message prompts,desc=Removes the message prompt and inbox modules from the timeline
+debug = switch,false,tag=Debug log,desc=Writes one line per timeline response in the Loon script log, with the number of entries removed per rule
+
 [Script]
-http-response ^https:\/\/(api\.x\.com|api\.twitter\.com|x\.com)\/(i\/api\/)?graphql\/[^/]+\/(HomeTimeline|HomeLatestTimeline) script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/X/x-probe.js,requires-body=true,binary-body-mode=false,timeout=10,tag=X timeline probe
+http-response ^https:\/\/(api\.x\.com|api\.twitter\.com|x\.com)\/(i\/api\/)?graphql\/[^/]+\/(HomeTimeline|HomeLatestTimeline) script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/X/x-adblock.js,requires-body=true,binary-body-mode=false,timeout=10,argument=[{remove_promoted},{remove_ad_carousels},{remove_who_to_follow},{remove_message_prompt},{debug}],tag=X timeline ads
 
 [Mitm]
-hostname = x.com, api.x.com
+hostname = x.com

@@ -1,0 +1,21 @@
+{
+  "data": {
+    "home": {
+      "home_timeline_urt": {
+        "instructions": [
+          {
+            "type": "TimelineAddEntries",
+            "entries": [
+              { "entryId": "cursor-top-10", "sortIndex": "10", "content": { "entryType": "TimelineTimelineCursor", "value": "TOP", "cursorType": "Top" } },
+              { "entryId": "tweet-1", "sortIndex": "9", "content": { "entryType": "TimelineTimelineItem", "itemContent": { "itemType": "TimelineTweet", "tweet_results": { "result": { "rest_id": "1" } } } } },
+              { "entryId": "home-conversation-2", "sortIndex": "8", "content": { "entryType": "TimelineTimelineModule", "displayType": "VerticalConversation", "items": [
+                { "entryId": "tweet-21", "item": { "itemContent": { "itemType": "TimelineTweet", "tweet_results": { "result": { "rest_id": "21" } } } } }
+              ] } },
+              { "entryId": "cursor-bottom-1", "sortIndex": "1", "content": { "entryType": "TimelineTimelineCursor", "value": "BOTTOM", "cursorType": "Bottom" } }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}
