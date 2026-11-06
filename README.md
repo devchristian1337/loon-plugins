@@ -35,6 +35,7 @@
 | [YouTube](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/YouTube.lpx)       | Removes ads from the YouTube app              | Ad removal, background playback, subtitle translation, channel blocklist |
 | [SoundCloud](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/SoundCloud.lpx) | Unlocks SoundCloud Go+ features               | Premium content and features, Upgrade tab and badge removed      |
 | [Tinder AdBlock](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/Tinder.lpx) | Hides Tinder ads and upsells                  | No ads in the card stack, no Gold/Platinum upsell modals         |
+| [X Probe](https://www.nsloon.com/openloon/import?plugin=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Plugins/X.lpx)                  | Research probe for the X (Twitter) timeline   | Read-only: reports ad markers, changes nothing |
 
 ## ✨ Features
 
@@ -74,6 +75,16 @@
 - 🙈 Hides the Gold/Platinum upsell modals, tooltips and merchandising cards
 - 🎬 The rewarded video that grants extra likes keeps working
 - ⚠️ Premium features are not unlocked: likes, Rewind, Passport and Likes You are enforced by the server
+
+### X Probe Plugin (research, read-only)
+
+A diagnostic plugin for the X (Twitter) app. It does not remove anything yet: it inspects the Home timeline GraphQL responses (`HomeTimeline`, `HomeLatestTimeline`) and reports what it finds, so that an ad-removal plugin can be written on evidence from real traffic.
+
+- Never modifies the response: every run ends with `$done({})`.
+- MITM on `api.x.com` only. Do not add `api.twitter.com`: with that host decrypted the X app refuses to load the feed.
+- Reports, per response: host and path, operation name and query id, content type and encoding, the size of every `entries` array, how many entries match each candidate ad rule (entryId starting with `promoted`, `promotedMetadata` in `itemContent`, `promotedMetadata` in module items, module `displayType` `Carousel`), a sketch of the first two candidates and the JSON parse outcome.
+
+To run it: install the plugin, enable MITM, open X on the "For you" timeline and scroll for a minute, then read the output in Loon under Dashboard, Log (filter `X probe`). The notifications carry a shortened copy of the same report.
 
 ## 📝 Requirements
 

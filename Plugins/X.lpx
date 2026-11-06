@@ -1,0 +1,16 @@
+#!name = X Probe
+#!desc = Research probe for the X (Twitter) app: inspects the Home timeline GraphQL responses and reports the ad markers it finds in the Loon script log and notifications. Never modifies traffic. MITM on api.x.com only.
+#!openUrl = https://loon-plugins.vercel.app
+#!author = devchristian1337
+#!tag = X, Research
+#!system = iOS,iPadOS,macOS
+#!loon_version = 3.3.4(898)
+#!homepage = https://github.com/devchristian1337/loon-plugins/blob/main/README.md
+#!icon = https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/App-Icons/x.png
+#!date = 2026-11-06
+
+[Script]
+http-response ^https:\/\/(api\.x\.com|api\.twitter\.com|x\.com)\/(i\/api\/)?graphql\/[^/]+\/(HomeTimeline|HomeLatestTimeline) script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/X/x-probe.js,requires-body=true,binary-body-mode=false,timeout=10,tag=X timeline probe
+
+[Mitm]
+hostname = api.x.com
