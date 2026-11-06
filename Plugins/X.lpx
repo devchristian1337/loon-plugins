@@ -1,5 +1,5 @@
 #!name = X Probe
-#!desc = Research probe for the X (Twitter) app: inspects the Home timeline GraphQL responses and reports the ad markers it finds in the Loon script log and notifications. Never modifies traffic. MITM on api.x.com only.
+#!desc = Research probe for X (Twitter): inspects the Home timeline GraphQL responses of the web app (x.com in Safari or as a Home Screen web app) and reports the ad markers it finds in the Loon script log and notifications. Never modifies traffic. The native app pins its certificates and cannot be inspected.
 #!openUrl = https://loon-plugins.vercel.app
 #!author = devchristian1337
 #!tag = X, Research
@@ -13,4 +13,4 @@
 http-response ^https:\/\/(api\.x\.com|api\.twitter\.com|x\.com)\/(i\/api\/)?graphql\/[^/]+\/(HomeTimeline|HomeLatestTimeline) script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/X/x-probe.js,requires-body=true,binary-body-mode=false,timeout=10,tag=X timeline probe
 
 [Mitm]
-hostname = api.x.com
+hostname = x.com, api.x.com
