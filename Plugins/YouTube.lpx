@@ -7,7 +7,7 @@
 #!loon_version = 3.5.1(983)
 #!homepage = https://github.com/devchristian1337/loon-plugins/blob/main/README.md
 #!icon = https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/App-Icons/youtube.png
-#!date = 2026-11-01
+#!date = 2026-11-07
 
 [Argument]
 background_playback = switch,false,tag=Background playback,desc=Keeps audio playing for regular videos after switching app or locking the screen. Live streams and restricted content are still decided by YouTube

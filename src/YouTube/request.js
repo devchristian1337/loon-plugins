@@ -362,10 +362,10 @@ var ytRequestHandlers = {
       function ytDiagnosticSanitize(e) {
         if (!e) return e;
         var t =
-          /(?:[a-z_]+\.eml-fe\|[0-9a-f]{16}|skip_ad_on_block|googleadservices\.com\/pagead\/|youtube\.com\/pagead\/|yt-ads-web-view-id|FEwhat_to_watch|FEsubscriptions|FEshorts)/g;
+          /(?:[a-z_]+\.eml-fe\|[0-9a-f]{1,16}|skip_ad_on_block|googleadservices\.com\/pagead\/|youtube\.com\/pagead\/|yt-ads-web-view-id|FEwhat_to_watch|FEsubscriptions|FEshorts)/g;
         function labels(e) {
           return (String(e).match(t) || []).map(function (e) {
-            return e.replace(/\|[0-9a-f]{16}$/, "|0000000000000000");
+            return e.replace(/\|[0-9a-f]{1,16}$/, "|0000000000000000");
           });
         }
         function url(e) {
@@ -1219,10 +1219,10 @@ var ytRequestHandlers = {
       function ytDiagnosticSanitize(e) {
         if (!e) return e;
         var t =
-          /(?:[a-z_]+\.eml-fe\|[0-9a-f]{16}|skip_ad_on_block|googleadservices\.com\/pagead\/|youtube\.com\/pagead\/|yt-ads-web-view-id|FEwhat_to_watch|FEsubscriptions|FEshorts)/g;
+          /(?:[a-z_]+\.eml-fe\|[0-9a-f]{1,16}|skip_ad_on_block|googleadservices\.com\/pagead\/|youtube\.com\/pagead\/|yt-ads-web-view-id|FEwhat_to_watch|FEsubscriptions|FEshorts)/g;
         function labels(e) {
           return (String(e).match(t) || []).map(function (e) {
-            return e.replace(/\|[0-9a-f]{16}$/, "|0000000000000000");
+            return e.replace(/\|[0-9a-f]{1,16}$/, "|0000000000000000");
           });
         }
         function url(e) {
@@ -2981,10 +2981,10 @@ var ytRequestHandlers = {
       function ytDiagnosticSanitize(e) {
         if (!e) return e;
         var t =
-          /(?:[a-z_]+\.eml-fe\|[0-9a-f]{16}|skip_ad_on_block|googleadservices\.com\/pagead\/|youtube\.com\/pagead\/|yt-ads-web-view-id|FEwhat_to_watch|FEsubscriptions|FEshorts)/g;
+          /(?:[a-z_]+\.eml-fe\|[0-9a-f]{1,16}|skip_ad_on_block|googleadservices\.com\/pagead\/|youtube\.com\/pagead\/|yt-ads-web-view-id|FEwhat_to_watch|FEsubscriptions|FEshorts)/g;
         function labels(e) {
           return (String(e).match(t) || []).map(function (e) {
-            return e.replace(/\|[0-9a-f]{16}$/, "|0000000000000000");
+            return e.replace(/\|[0-9a-f]{1,16}$/, "|0000000000000000");
           });
         }
         function url(e) {

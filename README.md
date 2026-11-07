@@ -55,7 +55,7 @@
 
 ### YouTube Plugin
 
-- 🚫 Block ads in the feed, Shorts and player
+- 🚫 Block ads in the feed, search results (including the pages loaded while scrolling), Shorts and player
 - ⏯️ Optional background playback
 - 🌍 Translate existing subtitle tracks to zh-CN or en-US
 - 🙈 Hide the Shorts shelf from the Home feed or from every feed and search results

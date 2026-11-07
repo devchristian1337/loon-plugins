@@ -363,10 +363,10 @@ var ytResponseHandlers = {
       function ytDiagnosticSanitize(e) {
         if (!e) return e;
         var r =
-          /(?:[a-z_]+\.eml-fe\|[0-9a-f]{16}|skip_ad_on_block|googleadservices\.com\/pagead\/|youtube\.com\/pagead\/|yt-ads-web-view-id|FEwhat_to_watch|FEsubscriptions|FEshorts)/g;
+          /(?:[a-z_]+\.eml-fe\|[0-9a-f]{1,16}|skip_ad_on_block|googleadservices\.com\/pagead\/|youtube\.com\/pagead\/|yt-ads-web-view-id|FEwhat_to_watch|FEsubscriptions|FEshorts)/g;
         function labels(e) {
           return (String(e).match(r) || []).map(function (e) {
-            return e.replace(/\|[0-9a-f]{16}$/, "|0000000000000000");
+            return e.replace(/\|[0-9a-f]{1,16}$/, "|0000000000000000");
           });
         }
         function url(e) {
@@ -966,7 +966,8 @@ var ytResponseHandlers = {
             var A = {
               browse: { 9: "browseUnion", 10: "continuationUnion" },
               next: { 7: "nextUnion", 8: "continuationUnion" },
-              search: { 4: "browseUnion", 10: "continuationUnion" },
+              // Search continuation pages (loaded while scrolling) arrive in field 7, the first page in field 4. Added 2026-11-07.
+              search: { 4: "browseUnion", 7: "continuationUnion", 10: "continuationUnion" },
               browseUnion: { 49399797: "sectionList", 58173949: "browseColumns", 153515154: "opaqueElement" },
               browseColumns: { 1: "tabUnion" },
               tabUnion: { 58174010: "tab" },
@@ -1073,9 +1074,14 @@ var ytResponseHandlers = {
               if (t === r.length) {
                 var i = false;
                 a.forEach(function (r) {
-                  if (r.no !== 8) return;
+                  // The command container keeps skip_ad_on_block in field 8, or since app 21.44 (2026-11-07) in field 57 wrapped in one more message (57 -> 1). Both are accepted.
+                  if (r.no !== 8 && r.no !== 57) return;
                   if (r.wire !== 2) fail("eml-command-schema-mismatch");
                   var t = e.subarray(r.payloadStart, r.end);
+                  if (r.no === 57) {
+                    t = child(t, 1, n);
+                    if (!t) return;
+                  }
                   var a = child(t, 1, n),
                     o = child(t, 2, n);
                   if (a && ascii(a) === "skip_ad_on_block" && o !== null) i = true;
@@ -1118,7 +1124,8 @@ var ytResponseHandlers = {
                 f = child(u, 172035250, r, l);
               if (!f) return { ad: false, divider: false };
               var d = ascii(child(f, 1, r));
-              var c = /^([a-z_]+)\.eml-fe\|[0-9a-f]{16}$/.exec(d);
+              // The hash after eml-fe| is usually 16 hex digits, but leading zeros are dropped (15 digits seen on 2026-11-07).
+              var c = /^([a-z_]+)\.eml-fe\|[0-9a-f]{1,16}$/.exec(d);
               if (!c) return { ad: false, divider: false };
               var p = c[1],
                 v = E[p];
@@ -1249,7 +1256,7 @@ var ytResponseHandlers = {
                 u = child(o, 5, r);
               if (!s || !u || parse(s, r).length !== 1) return false;
               var l = child(s, 172035250, r);
-              if (!l || !/^shorts_video_cell\.eml-fe\|[0-9a-f]{16}$/.test(ascii(child(l, 1, r))))
+              if (!l || !/^shorts_video_cell\.eml-fe\|[0-9a-f]{1,16}$/.test(ascii(child(l, 1, r))))
                 return false;
               var f = parse(u, r);
               return f.length === 1 && f[0].no === 519005951 && f[0].wire === 2;
@@ -1786,7 +1793,7 @@ var ytResponseHandlers = {
                 if (!c) return false;
                 var p = ascii(child(c, 1, m));
                 if (
-                  !/^(?:video_lockup_with_attachment|video_lockup|video_cell|compact_video_cell|shorts_video_cell)\.eml-fe\|[0-9a-f]{16}$/.test(
+                  !/^(?:video_lockup_with_attachment|video_lockup|video_cell|compact_video_cell|shorts_video_cell)\.eml-fe\|[0-9a-f]{1,16}$/.test(
                     p,
                   )
                 )
@@ -2370,10 +2377,10 @@ var ytResponseHandlers = {
       function ytDiagnosticSanitize(e) {
         if (!e) return e;
         var r =
-          /(?:[a-z_]+\.eml-fe\|[0-9a-f]{16}|skip_ad_on_block|googleadservices\.com\/pagead\/|youtube\.com\/pagead\/|yt-ads-web-view-id|FEwhat_to_watch|FEsubscriptions|FEshorts)/g;
+          /(?:[a-z_]+\.eml-fe\|[0-9a-f]{1,16}|skip_ad_on_block|googleadservices\.com\/pagead\/|youtube\.com\/pagead\/|yt-ads-web-view-id|FEwhat_to_watch|FEsubscriptions|FEshorts)/g;
         function labels(e) {
           return (String(e).match(r) || []).map(function (e) {
-            return e.replace(/\|[0-9a-f]{16}$/, "|0000000000000000");
+            return e.replace(/\|[0-9a-f]{1,16}$/, "|0000000000000000");
           });
         }
         function url(e) {
@@ -4004,10 +4011,10 @@ var ytResponseHandlers = {
       function ytDiagnosticSanitize(e) {
         if (!e) return e;
         var r =
-          /(?:[a-z_]+\.eml-fe\|[0-9a-f]{16}|skip_ad_on_block|googleadservices\.com\/pagead\/|youtube\.com\/pagead\/|yt-ads-web-view-id|FEwhat_to_watch|FEsubscriptions|FEshorts)/g;
+          /(?:[a-z_]+\.eml-fe\|[0-9a-f]{1,16}|skip_ad_on_block|googleadservices\.com\/pagead\/|youtube\.com\/pagead\/|yt-ads-web-view-id|FEwhat_to_watch|FEsubscriptions|FEshorts)/g;
         function labels(e) {
           return (String(e).match(r) || []).map(function (e) {
-            return e.replace(/\|[0-9a-f]{16}$/, "|0000000000000000");
+            return e.replace(/\|[0-9a-f]{1,16}$/, "|0000000000000000");
           });
         }
         function url(e) {
@@ -5319,10 +5326,10 @@ var ytResponseHandlers = {
       function ytDiagnosticSanitize(e) {
         if (!e) return e;
         var r =
-          /(?:[a-z_]+\.eml-fe\|[0-9a-f]{16}|skip_ad_on_block|googleadservices\.com\/pagead\/|youtube\.com\/pagead\/|yt-ads-web-view-id|FEwhat_to_watch|FEsubscriptions|FEshorts)/g;
+          /(?:[a-z_]+\.eml-fe\|[0-9a-f]{1,16}|skip_ad_on_block|googleadservices\.com\/pagead\/|youtube\.com\/pagead\/|yt-ads-web-view-id|FEwhat_to_watch|FEsubscriptions|FEshorts)/g;
         function labels(e) {
           return (String(e).match(r) || []).map(function (e) {
-            return e.replace(/\|[0-9a-f]{16}$/, "|0000000000000000");
+            return e.replace(/\|[0-9a-f]{1,16}$/, "|0000000000000000");
           });
         }
         function url(e) {
