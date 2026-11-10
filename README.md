@@ -50,7 +50,7 @@
 
 - 🚫 Remove playback, Home, Search and scroll advertisements
 - 🧹 Optional switches to hide the discovery feed on the Now Playing screen, the membership info and the AI DJ entry
-- ⚙️ Local protobuf override by default, remote modification available as an alternative switch
+- ⚙️ Local protobuf override by default (Premium configuration snapshot chosen by app version: 9.1.76+ or older, with the ad, upsell and capping flags fixed afterwards), remote modification available as an alternative switch
 - ⚠️ Note: Audio quality cannot be set to "Very High"
 
 ### YouTube Plugin
@@ -135,6 +135,7 @@ These plugins use various techniques to enhance your app experience:
 - Enable only one of the two protobuf scripts, not both
 - Restart the app and wait a few minutes for changes to take effect
 - Some premium features may still be unavailable (e.g., very high audio quality)
+- After a Spotify update, update the plugin in Loon too: the configuration snapshot follows the app version
 
 **YouTube Plugin Issues:**
 

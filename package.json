@@ -1,10 +1,10 @@
 {
   "name": "loon-plugins",
   "private": true,
-  "description": "Loon plugins and scripts. The YouTube scripts are built from src/YouTube with terser.",
+  "description": "Loon plugins and scripts. The YouTube and Spotify scripts are built from src/ with terser.",
   "scripts": {
-    "build": "node tools/build-youtube.mjs",
-    "test": "node tests/X/test.js"
+    "build": "node tools/build-youtube.mjs && node tools/build-spotify.mjs",
+    "test": "node tests/X/test.js && node tests/Spotify/test.js"
   },
   "devDependencies": {
     "terser": "^5.39.0"

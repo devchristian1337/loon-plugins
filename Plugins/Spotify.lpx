@@ -7,10 +7,10 @@
 #!loon_version = 3.5.1(983)
 #!homepage = https://github.com/devchristian1337/loon-plugins/blob/main/README.md
 #!icon = https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/App-Icons/spotify.png
-#!date = 2026-11-01
+#!date = 2026-11-10
 
 [Argument]
-spot_remote_config = switch,false,tag=Remote config modification,desc=Alternative protobuf patch of the bootstrap/customize responses. When off (recommended) the local config override is used. Only one of the two runs, never both
+spot_remote_config = switch,false,tag=Remote config modification,desc=Alternative protobuf patch of the bootstrap/customize responses that only edits the flags sent by the server. When off (recommended) the local config override is used: a Premium configuration snapshot matching the app version (9.1.76 and newer, or older). Only one of the two runs, never both
 hide_discovery_feed = switch,true,tag=Hide discovery feed,desc=Hides the discovery feed shown on the Now Playing screen
 hide_membership_info = switch,true,tag=Hide membership info,desc=Hides the membership info in Settings (display only)
 hide_ai_dj = switch,true,tag=Hide AI DJ,desc=Blocks the AI DJ entry so it does not appear in the app
@@ -23,6 +23,8 @@ DOMAIN,aet.spotify.com,REJECT
 [Rewrite]
 ^https:\/\/(spclient\.wg\.spotify\.com|.*-spclient\.spotify\.com(:443)?)\/user-customization-service\/v1\/customize header-del if-none-match
 ^https:\/\/(spclient\.wg|.*-spclient)\.spotify\.com(:443)?\/pendragon reject-dict
+# Ad delivery endpoints used by the player core and the Home banner (ads/*, ad-logic/*, ad-on-app-open) and the Premium upsell offers: a failed fetch makes the app skip the ad break.
+^https:\/\/(?:spclient\.wg|[\w-]+-spclient)\.spotify\.com(?::443)?\/(?:ads\/|ad-logic\/|[^?#]*\/ad-on-app-open|premium-marketing\/upsellOffer) reject
 
 # Optional preferences, each controlled by its own switch (conditional rewrite syntax, Loon 3.5.1+)
 request if ${url} ~= /^https:\/\/(?:spclient\.wg|[\w-]+-spclient)\.spotify\.com(?::443)?\/watch-feed-entrypoints\/v\d\/discovery-from-seed/ && ${hide_discovery_feed} == true then reject_dict(200)
