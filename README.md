@@ -50,7 +50,7 @@
 
 - 🚫 Remove playback, Home, Search and scroll advertisements
 - 🧹 Optional switches to hide the discovery feed on the Now Playing screen, the membership info and the AI DJ entry
-- ⚙️ Local protobuf override by default (Premium configuration snapshot chosen by app version: 9.1.76+ or older, with the ad, upsell and capping flags fixed afterwards), remote modification available as an alternative switch
+- ⚙️ Local protobuf override by default (Premium configuration snapshot chosen by app version: 9.1.76+ or older, with the ad, upsell and capping flags fixed afterwards), also on the configuration and account attribute refreshes introduced by app 9.1.98; remote modification available as an alternative switch
 - ⚠️ Note: Audio quality cannot be set to "Very High"
 
 ### YouTube Plugin

@@ -22,6 +22,8 @@ DOMAIN,aet.spotify.com,REJECT
 
 [Rewrite]
 ^https:\/\/(spclient\.wg\.spotify\.com|.*-spclient\.spotify\.com(:443)?)\/user-customization-service\/v1\/customize header-del if-none-match
+# Since app 9.1.98 the configuration and the account attributes are refreshed through these two endpoints; without the conditional header the server answers 304 and the app keeps its unpatched cache.
+^https:\/\/(?:spclient\.wg|[\w-]+-spclient)\.spotify\.com(?::443)?\/(?:remote-config-resolver\/v\d+\/configuration|nebula\/v\d+\/configuration\/attributes)(?:\?[^#]*)?$ header-del if-none-match
 ^https:\/\/(spclient\.wg|.*-spclient)\.spotify\.com(:443)?\/pendragon reject-dict
 # Ad delivery endpoints used by the player core and the Home banner (ads/*, ad-logic/*, ad-on-app-open) and the Premium upsell offers: a failed fetch makes the app skip the ad break.
 ^https:\/\/(?:spclient\.wg|[\w-]+-spclient)\.spotify\.com(?::443)?\/(?:ads\/|ad-logic\/|[^?#]*\/ad-on-app-open|premium-marketing\/upsellOffer) reject
@@ -43,3 +45,4 @@ http-response ^https:\/\/(spclient\.wg\.spotify\.com|.*-spclient\.spotify\.com(:
 # Only the first matching script runs for a response: the remote patch is listed first and runs only when its switch is on, otherwise the local override below handles the response.
 http-response ^https:\/\/(spclient\.wg\.spotify\.com|.*-spclient\.spotify\.com(:443)?)\/(bootstrap\/v1\/bootstrap|user-customization-service\/v1\/customize)(\?.*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/Spotify/spot-proto-eevee.js, requires-body=true, binary-body-mode=true, timeout=10, tag=Spotify protobuf (remote), enable={spot_remote_config}
 http-response ^https:\/\/(spclient\.wg\.spotify\.com|.*-spclient\.spotify\.com(:443)?)\/(bootstrap\/v1\/bootstrap|user-customization-service\/v1\/customize)(\?.*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/Spotify/spot-proto-ev3.js, requires-body=true, binary-body-mode=true, timeout=10, tag=Spotify protobuf (local)
+http-response ^https:\/\/(?:spclient\.wg|[\w-]+-spclient)\.spotify\.com(?::443)?\/(?:remote-config-resolver\/v\d+\/configuration|nebula\/v\d+\/configuration\/attributes)(?:\?[^#]*)?$ script-path=https://raw.githubusercontent.com/devchristian1337/loon-plugins/refs/heads/main/Scripts/Spotify/spot-proto-ev3.js, requires-body=true, binary-body-mode=true, timeout=10, tag=Spotify protobuf (app 9.1.98+ configuration and attributes)

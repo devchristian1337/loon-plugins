@@ -216,6 +216,45 @@ test("customize response is patched the same way", () => {
   assert.ok(logs.some((l) => /customize app=9\.1\.98 snapshot=9\.1\.76/.test(l)), logs.join("\n"));
 });
 
+test("remote-config-resolver configuration (app 9.1.98) is replaced by the snapshot", () => {
+  const { result, logs } = run(ld(1, configuration), { url: "https://gew4-spclient.spotify.com:443/remote-config-resolver/v3/configuration" });
+  const out = decodeOutput(result);
+  const top = fields(out);
+  assert.strictEqual(top.length, 1, "ResolveResponse wrapper kept");
+  const conf = fields(top[0].payload);
+  const bare = decodeOutput(run(configuration, { url: "https://gew4-spclient.spotify.com:443/remote-config-resolver/v3/configuration" }).result);
+  assert.strictEqual(fields(bare).length, conf.length, "a bare configuration is patched the same way");
+  assert.strictEqual(one(conf, 1).payload.toString(), SNAPSHOT_NEW.configurationAssignmentId);
+  const values = conf.filter((f) => f.no === 3);
+  assert.ok(values.length > 1000, "snapshot values present");
+  assert.ok(logs.some((l) => /configuration app=9\.1\.98 snapshot=9\.1\.76 values=6->\d+ \(live 2/.test(l)), logs.join("\n"));
+});
+
+test("nebula account attributes (app 9.1.98) are patched, also on GET", () => {
+  const { result, logs } = run(attributes, { url: "https://gew4-spclient.spotify.com:443/nebula/v1/configuration/attributes", method: "GET" });
+  const out = decodeOutput(result);
+  const a = {};
+  for (const f of fields(out)) {
+    const kv = fields(f.payload), inner = fields(one(kv, 2).payload);
+    const b = one(inner, 2), l = one(inner, 3), st = one(inner, 4);
+    a[one(kv, 1).payload.toString()] = b ? b.value === 1 : l ? l.value : st.payload.toString();
+  }
+  assert.strictEqual(a.type, "premium");
+  assert.strictEqual(a.ads, false);
+  assert.strictEqual(a.offline, false);
+  assert.strictEqual(a.country, "IT");
+  assert.ok(logs.some((l) => /attributes app=9\.1\.98 .*attributes=\d+ type=free/.test(l)), logs.join("\n"));
+});
+
+test("unknown layouts of the new endpoints pass through with a diagnostic line", () => {
+  const r1 = run(bootstrap, { url: "https://gew4-spclient.spotify.com:443/remote-config-resolver/v3/configuration" });
+  assert.deepStrictEqual(Object.keys(r1.result), []);
+  assert.ok(r1.logs.some((l) => /configuration has an unknown layout \[2:2:\d+ 3:2:\d+ 7:2:\d+\]/.test(l)), r1.logs.join("\n"));
+  const r2 = run(configuration, { url: "https://gew4-spclient.spotify.com:443/nebula/v1/configuration/attributes", method: "GET" });
+  assert.deepStrictEqual(Object.keys(r2.result), []);
+  assert.ok(r2.logs.some((l) => /attributes have an unknown layout/.test(l)), r2.logs.join("\n"));
+});
+
 test("the output decodes with the same structure when fed back in", () => {
   const first = decodeOutput(run(bootstrap).result);
   const second = decodeOutput(run(first).result);

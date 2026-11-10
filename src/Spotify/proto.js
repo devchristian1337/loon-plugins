@@ -3,13 +3,17 @@
  * Source of Scripts/Spotify/spot-proto-ev3.js. Edit this file, then run "npm run build" from the repository
  * root to regenerate the script: the build inlines the configuration snapshots of src/Spotify/config.
  *
- * Patches the two Spotify responses that carry the remote configuration and the account attributes
- * (bootstrap/v1/bootstrap and user-customization-service/v1/customize). The protobuf is walked field by
+ * Patches the Spotify responses that carry the remote configuration and the account attributes:
+ * bootstrap/v1/bootstrap and user-customization-service/v1/customize (both together), and since app 9.1.98
+ * remote-config-resolver/v3/configuration (the configuration alone, refreshed after login) and
+ * nebula/v1/configuration/attributes (the account attributes alone). The protobuf is walked field by
  * field and only the known path is rewritten; every other field, known or not, is copied verbatim, so a
  * new field added by the app is never dropped.
  *
  *   BootstrapMessage        2: wrapper -> 1: success -> 1: CustomizeMessage    3: trials facade (removed)
  *   CustomizeMessage        1: UcsResponse (success)   2: error
+ *   remote-config-resolver  ResolveResponse (1: ResolveConfiguration) at the top level
+ *   nebula attributes       AccountAttributesResponse at the top level
  *   UcsResponse             1: ResolveResponse  3: AccountAttributesResponse  5: fetch time
  *   ResolveResponse         1: ResolveConfiguration
  *   ResolveConfiguration    1: assignment id  2: fetch time  3: AssignedValue (repeated)  4: policy snapshot
@@ -574,6 +578,53 @@ function patchUcs(payload, snapshot, stats) {
 function patchCustomize(payload, snapshot, stats) {
   return mapField(payload, 1, function (ucs) { return patchUcs(ucs, snapshot, stats); }).bytes;
 }
+// Layout checks for the top-level messages: bytes that do not parse are simply not that message.
+function tryParse(b) {
+  try {
+    return parseFields(b);
+  } catch (e) {
+    return null;
+  }
+}
+// Top-level ResolveConfiguration (remote-config-resolver): recognized by its assigned values in field 3.
+function looksLikeConfiguration(payload) {
+  var fields = tryParse(payload), found = 0;
+  if (!fields) return false;
+  for (var i = 0; i < fields.length; i++) {
+    if (fields[i].no === 3 && fields[i].wire === 2) {
+      var v = null;
+      try {
+        v = decodeAssignedValue(fields[i].payload);
+      } catch (e) {}
+      if (!v || !v.scope || !v.name) return false;
+      found++;
+    } else if (fields[i].no > 4) return false;
+  }
+  return found > 0;
+}
+// Top-level AccountAttributesResponse (nebula): map entries in field 1 with a string key and a message value.
+function looksLikeAttributes(payload) {
+  var fields = tryParse(payload), found = 0;
+  if (!fields) return false;
+  for (var i = 0; i < fields.length; i++) {
+    if (fields[i].no !== 1 || fields[i].wire !== 2) return false;
+    var kv = tryParse(fields[i].payload), key = false, value = false;
+    if (!kv) return false;
+    for (var j = 0; j < kv.length; j++) {
+      if (kv[j].no === 1 && kv[j].wire === 2) key = true;
+      else if (kv[j].no === 2 && kv[j].wire === 2 && tryParse(kv[j].payload)) value = true;
+      else return false;
+    }
+    if (!key || !value) return false;
+    found++;
+  }
+  return found > 0;
+}
+function describeLayout(payload) {
+  var fields = parseFields(payload), out = [];
+  for (var i = 0; i < fields.length && i < 12; i++) out.push(fields[i].no + ":" + fields[i].wire + ":" + fields[i].raw.length);
+  return "[" + out.join(" ") + "]";
+}
 function patchBootstrap(payload, snapshot, stats) {
   var withoutTrials = mapField(payload, 3, function () { stats.trialsRemoved = true; return null; }).bytes;
   return mapField(withoutTrials, 2, function (wrapper) {
@@ -628,8 +679,16 @@ function main() {
     return $done({});
   }
   var url = String($request.url || ""), method = String($request.method || "").toUpperCase();
-  var kind = /bootstrap\/v1\/bootstrap/.test(url) ? "bootstrap" : /user-customization-service\/v1\/customize/.test(url) ? "customize" : null;
-  if (!kind || method !== "POST") {
+  var kind = /bootstrap\/v1\/bootstrap/.test(url)
+    ? "bootstrap"
+    : /user-customization-service\/v1\/customize/.test(url)
+      ? "customize"
+      : /remote-config-resolver\/v\d+\/configuration/.test(url)
+        ? "configuration"
+        : /nebula\/v\d+\/configuration\/attributes/.test(url)
+          ? "attributes"
+          : null;
+  if (!kind || (method !== "POST" && kind !== "attributes")) {
     console.log("spotify-proto: unexpected request " + method + " " + url);
     return $done({});
   }
@@ -640,7 +699,32 @@ function main() {
   }
   var version = appVersion($request), snapshot = pickSnapshot(version);
   var stats = { rules: 0, cohort: 0, values: 0, serverValues: 0, live: 0, attributes: 0 };
-  var out = kind === "bootstrap" ? patchBootstrap(body, snapshot.data, stats) : patchCustomize(body, snapshot.data, stats);
+  var out;
+  if (kind === "bootstrap") out = patchBootstrap(body, snapshot.data, stats);
+  else if (kind === "customize") out = patchCustomize(body, snapshot.data, stats);
+  else if (kind === "configuration") {
+    // ResolveResponse wraps the configuration in field 1; a bare configuration is accepted as well.
+    var top = tryParse(body);
+    if (top && top.length === 1 && top[0].no === 1 && top[0].wire === 2 && looksLikeConfiguration(top[0].payload)) {
+      stats.configuration = true;
+      out = mapField(body, 1, function (configuration) {
+        return patchConfiguration(configuration, snapshot.data, stats);
+      }).bytes;
+    } else if (looksLikeConfiguration(body)) {
+      stats.configuration = true;
+      out = patchConfiguration(body, snapshot.data, stats);
+    } else {
+      console.log("spotify-proto: configuration has an unknown layout " + describeLayout(body) + ", pass-through");
+      return $done({});
+    }
+  } else {
+    if (!looksLikeAttributes(body)) {
+      console.log("spotify-proto: attributes have an unknown layout " + describeLayout(body) + ", pass-through");
+      return $done({});
+    }
+    stats.attributesFound = true;
+    out = patchAttributes(body, stats);
+  }
   if (!stats.configuration && !stats.attributesFound) {
     console.log("spotify-proto: " + kind + " has no configuration or attributes, pass-through");
     return $done({});
